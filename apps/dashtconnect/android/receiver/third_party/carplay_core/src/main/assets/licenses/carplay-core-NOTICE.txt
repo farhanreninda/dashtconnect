@@ -1,0 +1,7 @@
+CarPlay receiver core: xcertplay by shilapi and DiPlay contributors.
+Source: https://github.com/shihabal3amri/DiPlay
+Commit: 143f4674b60b564a16baae5110b3b90fb7277631
+License: GNU GPL version 3, see carplay-core-GPL-3.0.txt.
+Protocol research credits: LIVI and Showcase.
+Optional Opus codec: Concentus by Logan Stromberg and contributors; BSD-style license in carplay-core-Opus.txt.
+No upstream application UI, BYD icon assets, or accessory identity is included in this source component.

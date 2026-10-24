@@ -1,0 +1,32 @@
+name: dashtconnect
+description: "Pendamping koneksi iPhone, receiver Android, dan T-Link."
+publish_to: 'none'
+
+version: 0.7.3+36
+
+environment:
+  sdk: ^3.13.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/branding/dashtconnect-logo.png
+    - assets/fonts/Inter-OFL.txt
+    - assets/fonts/SpaceGrotesk-OFL.txt
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter.ttf
+    - family: SpaceGrotesk
+      fonts:
+        - asset: assets/fonts/SpaceGrotesk.ttf

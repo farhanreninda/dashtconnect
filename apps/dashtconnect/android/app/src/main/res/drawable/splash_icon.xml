@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_mark">
+    <target android:name="phone" android:animation="@animator/splash_draw" />
+    <target android:name="display" android:animation="@animator/splash_draw" />
+</animated-vector>

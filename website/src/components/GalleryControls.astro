@@ -1,0 +1,12 @@
+---
+import Icon from './Icon.astro';
+interface Props { target: string; label: string; }
+const { target, label } = Astro.props;
+---
+<div class="gallery-controls">
+  <p>Geser untuk melihat {label}.</p>
+  <div class="scroll-buttons" hidden>
+    <button data-scroll-target={target} data-direction="-1" aria-controls={target} aria-label={`${label} sebelumnya`}><span class="previous"><Icon name="arrow" size={20} /></span></button>
+    <button data-scroll-target={target} data-direction="1" aria-controls={target} aria-label={`${label} berikutnya`}><Icon name="arrow" size={20} /></button>
+  </div>
+</div>

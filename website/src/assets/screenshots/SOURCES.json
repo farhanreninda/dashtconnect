@@ -1,0 +1,176 @@
+{
+  "source": "Screenshots supplied by the project owner in this conversation, 2026-10-24",
+  "device": "Samsung A04s (SM-A047F), Android 14",
+  "app_version": "0.7.3+36",
+  "notes": "Original images retained without retouching. Astro generates resized WebP copies for delivery.",
+  "files": [
+    {
+      "file": "home.png",
+      "sha256": "6bbe23fa4fdf3e3eb8296a2a84fabe6d33b4116b03e2045ca09d26e7719d0762"
+    },
+    {
+      "file": "guide.png",
+      "sha256": "49f218915d4e4baaef7471cc11b44bbdd4365ef2c2dd03f30fdb66058163b646"
+    },
+    {
+      "file": "help.png",
+      "sha256": "e19c5dbdf391a9ccec9cb65e897f19217e25d14a5180ad01fa0f2c1f8ab011e4"
+    },
+    {
+      "file": "settings.png",
+      "sha256": "3d2fca442cff4271f1128d9e59f2c560987f01be22aefdc49163142d7a7d5aa3"
+    },
+    {
+      "file": "appearance.png",
+      "sha256": "5ff19c324268d4e8aab87e4f10e2668ef9e4d4b165b4be2694c9152d5ec5f4b2"
+    },
+    {
+      "file": "device.png",
+      "sha256": "8c414245b53b848592af1b79229fed9cec0dea6a18ee3a9596917569e4326487"
+    },
+    {
+      "file": "device-technical.png",
+      "sha256": "bd1a7c9e16778b4a62ca7bb0adc9e69379b241cc6b4b9e29b3e395c06122ce10"
+    },
+    {
+      "file": "tutorial-1.png",
+      "sha256": "3fcc19a14e5051957e7b734dcd262c7358f2ca19ae64451b8c22f075719b4bd9"
+    },
+    {
+      "file": "tutorial-2.png",
+      "sha256": "f0ce8321d918c3b3dcca64f0835cd490ca5937ce2e244bdb6ccf137ca4bed81b"
+    },
+    {
+      "file": "tutorial-3.png",
+      "sha256": "93619f98953fa8ccefaad84e73fee7f89267a270c2ed5576dbea41e3fa92d9c9"
+    },
+    {
+      "file": "tutorial-4.png",
+      "sha256": "06314b71466f0c1293cf1902e6af0b962fb7390a19ffeb8149c2711e8da6d932"
+    },
+    {
+      "file": "carplay.png",
+      "sha256": "9a19f762cf0ecb19421f8446f52324ffb384bba35f4df542a79afe60f1daea34"
+    },
+    {
+      "file": "controls-idle.png",
+      "sha256": "79665c7851ae79662733709764d29708da65241be7bc73ef128021a3e4fa78ec"
+    },
+    {
+      "file": "music.png",
+      "sha256": "11ecca1a9c9bd257652a3d474c1f3ea8eeeb07a006cb22a98893b76f1da61961"
+    },
+    {
+      "file": "home-landscape.png",
+      "sha256": "ed85405c0276c9d9bf7276cfbd3e4d1af5a5ffdc463ffa3b9a55780dde8c041e"
+    },
+    {
+      "file": "guide-landscape.png",
+      "sha256": "927c99c7bb70911622d0dece6ea3821ae91abee756367aeccc1cfb4c96ad5667"
+    },
+    {
+      "file": "settings-landscape.png",
+      "sha256": "8f76728e12dd2fa70512c06bb651b9d729404440b851b5ac751cf57c12324292"
+    },
+    {
+      "file": "about-landscape.png",
+      "sha256": "a7cf1c85991b5f04df0ef6b49a8f44772e7725504f5675cd262b6c140e147f29"
+    },
+    {
+      "file": "help-expanded.png",
+      "sha256": "947db37b4f7b8a1cc72f81af95e693a88aba664fc7232835f989fe5233a40b8d"
+    },
+    {
+      "file": "receiver.png",
+      "sha256": "db59e5f7dfe108ab86d99c8a6e797b1b32fd4336e975000ce7ff8082420bfd13"
+    },
+    {
+      "file": "connecting.png",
+      "sha256": "bcfd422d56dfd20257b39be9b8a2e18b76cbd00dcb34781c770fea072b010e76"
+    },
+    {
+      "file": "dashboard.png",
+      "sha256": "184e87dc0efb24bddbf3baf970135b5b0cf443547e52284354c2ae6981763348"
+    },
+    {
+      "file": "music-library.png",
+      "sha256": "6b7f606f5e177b32ff62f70189119b9ff75b1874f41202e1cd78dc1c371ec6f2"
+    },
+    {
+      "file": "maps.png",
+      "sha256": "3b868aef3a44b17af7b7516a56e2e8eca750f8e819b27471f38b95b4fd8eeb87"
+    },
+    {
+      "file": "light/home-landscape.png",
+      "sha256": "55b9953e3ee42a6bbb986bb22cb8a2871ec418215982a31e1a6caf63aaa0628f"
+    },
+    {
+      "file": "light/receiver.png",
+      "sha256": "3062f1a42ff5de8353cdd9e4152b87cc6966b22ce6f36e3cc175ca124266195a"
+    },
+    {
+      "file": "light/home-scrolled.png",
+      "sha256": "d63a5d9a10801dd3685aee4ce9ba87e8b2b7c4e00e6f82b35391fa0bbf8a7a1e"
+    },
+    {
+      "file": "light/guide-landscape.png",
+      "sha256": "4c748f14b9d0c0ea1aee2b4150b3459272562ec7a754b817848a0918944c0564"
+    },
+    {
+      "file": "light/help-landscape.png",
+      "sha256": "516bf3814d7fc637125ae0474ced64b004010f5d3f607b713af5d36de8c1f3bc"
+    },
+    {
+      "file": "light/settings-landscape.png",
+      "sha256": "5720d95d505f65b971e737bbeac1fd206322207c0c99b10fc8e2a83c5ae27a41"
+    },
+    {
+      "file": "light/about-landscape.png",
+      "sha256": "a203929a728579a8eca5300a3a2df1b815958c0287234e2c3dabc3cf253af861"
+    },
+    {
+      "file": "light/device-landscape.png",
+      "sha256": "87756b1457f6726301cebff71ad3a89c21ab63f8d0f9304757bc5d04cf4a9403"
+    },
+    {
+      "file": "light/appearance-landscape.png",
+      "sha256": "5f862c1a54a28b02f7ae76107bf9254c7af65d7d5e8f5bea0c03a940686ad7b7"
+    },
+    {
+      "file": "light/home.png",
+      "sha256": "4131be0149ceddbda5e1d385a37b9b74f7939488d521a1edbc64168fc77233a1"
+    },
+    {
+      "file": "light/guide.png",
+      "sha256": "a0c276f5c6307b7c3229f7e8faa2d85a43747f5831f4b161b2f58f5a417a9c8f"
+    },
+    {
+      "file": "light/help.png",
+      "sha256": "2c4b6140c1bf862f81481d5fb74f08e03b665cee67042f5195644fb019e2bc17"
+    },
+    {
+      "file": "light/display-test.png",
+      "sha256": "0ff61183207bc8499c283503579eca916a1e610b4ca28158807a398d82ae9587"
+    },
+    {
+      "file": "light/settings.png",
+      "sha256": "7b7e59571fd257b4d03924718ad91f21bbb81b5518a21dd43f65a39b07d9a58a"
+    },
+    {
+      "file": "light/appearance.png",
+      "sha256": "64e04e9019d93e94d12d9dfd8d1cefe15d7f9dedfdbeca18c710fcd538a8995d"
+    },
+    {
+      "file": "light/device.png",
+      "sha256": "1e833a3502bcb821505a9f1a716e61646deadfa9a9085c61f5d7e2bb6fad6c36"
+    },
+    {
+      "file": "light/about.png",
+      "sha256": "da71308216e59977417da884650b5c359bc4e9188d93ffd472cfe0dcf94bdd3f"
+    },
+    {
+      "file": "carplay-dark.png",
+      "sha256": "70bdae66c7504a53bc3ad1f42e2877763b1d539cd53818163f73572385c59c32"
+    }
+  ]
+}
