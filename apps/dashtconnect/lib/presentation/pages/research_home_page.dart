@@ -110,6 +110,7 @@ class _ResearchHomeState extends State<ResearchHome> {
   Future<void> _openReceiver() => Navigator.of(context).push<void>(
     AppPageRoute(
       builder: (_) => ReceiverPage(
+        autoConnect: true,
         receiver: widget.receiver,
         device: widget.bridge,
         initiallyDimmed: _dimmed,
@@ -330,10 +331,10 @@ class _ResearchHomeState extends State<ResearchHome> {
             _help(
               'guide-dim-help',
               Icons.brightness_low_outlined,
-              'Layar redup dan koneksi tanpa internet',
+              'Layar redup dan jaringan lokal',
               const [
                 'Aktifkan Mode redup di Pengaturan.',
-                'Matikan data seluler dan putuskan Wi-Fi berinternet di Android; biarkan Wi-Fi dan Bluetooth aktif.',
+                'Wi-Fi berinternet atau data seluler Android boleh tetap aktif; biarkan Wi-Fi dan Bluetooth menyala.',
                 'Internet tetap digunakan di iPhone.',
               ],
             ),

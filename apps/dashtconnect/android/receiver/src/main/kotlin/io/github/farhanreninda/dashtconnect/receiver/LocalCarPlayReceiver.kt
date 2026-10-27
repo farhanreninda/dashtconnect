@@ -5,11 +5,8 @@ import android.content.pm.PackageManager
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.os.Build
+import android.net.wifi.WifiManager
 import android.provider.Settings
 import android.view.Surface
 import com.shilapi.xcertplay.airplay.*
@@ -62,11 +59,13 @@ class LocalCarPlayReceiver(
     private val runtimeReady = AtomicBoolean(false)
     private val rendered = AtomicBoolean(false)
     private val reported = AtomicBoolean(false)
-    private val pendingTouches = AtomicReference<List<ReceiverTouch>?>(null)
     private val worker = Executors.newSingleThreadExecutor()
     private val tunnelWorker = Executors.newSingleThreadExecutor()
     private val timers = Executors.newSingleThreadScheduledExecutor()
-    private val touchWorker = Executors.newSingleThreadScheduledExecutor()
+    private val touchWorker = Executors.newSingleThreadExecutor()
+    private val touches = ReceiverTouchDispatcher(touchWorker) { points ->
+        if (!closed.get()) active.get()?.sendTouch(points.map { AirPlayContact(it.id, it.x, it.y, true) })
+    }
 
     fun start() {
         check(started.compareAndSet(false, true))
@@ -82,7 +81,7 @@ class LocalCarPlayReceiver(
     }
 
     fun touch(points: List<ReceiverTouch>) {
-        if (!closed.get() && reported.get()) pendingTouches.set(points.take(10))
+        if (!closed.get() && reported.get()) touches.submit(points)
     }
 
     private fun status(message: String) { if (!closed.get() && !reported.get()) onStatus(message) }
@@ -92,7 +91,6 @@ class LocalCarPlayReceiver(
     }
 
     private fun connect() {
-        ReceiverOfflinePolicy.requireOffline(app)
         check(app.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             "Izinkan mikrofon untuk audio CarPlay terlebih dahulu."
         }
@@ -103,14 +101,24 @@ class LocalCarPlayReceiver(
         val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter
             ?: throw IOException("BLUETOOTH_UNAVAILABLE")
         if (!adapter.isEnabled) throw IOException("BLUETOOTH_DISABLED")
-        watchInternet()
+
+        val wifiLock = runCatching {
+            @Suppress("DEPRECATION")
+            val mode = if (Build.VERSION.SDK_INT >= 29) WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+                else WifiManager.WIFI_MODE_FULL_HIGH_PERF
+            app.getSystemService(WifiManager::class.java)
+                ?.createWifiLock(mode, "DashTConnect:receiver")?.apply {
+                    setReferenceCounted(false)
+                    acquire()
+                }
+        }.onFailure { android.util.Log.w("DashTReceiver", "Wi-Fi latency lock unavailable") }.getOrNull()
+        if (wifiLock != null) resources.add { if (wifiLock.isHeld) wifiLock.release() }
 
         status("Menyiapkan Wi-Fi lokal…")
         val hotspot = resources.own(WifiP2pGroupManager(app,
             preferredChannel = WifiP2pChannels.AUTO_2_4_GHZ, deviceBrand = Build.MANUFACTURER))
         val network = hotspot.start(25_000)
         android.util.Log.i("DashTReceiver", "Wi-Fi local frequencyMHz=${network.frequencyMHz}")
-        ReceiverOfflinePolicy.requireOffline(app)
         val address = network.hostAddresses.filterIsInstance<Inet4Address>().firstOrNull()
             ?: network.hostAddress ?: throw IOException("LOCAL_ADDRESS_UNAVAILABLE")
         val fallbackId = identity.publicKey.take(6).mapIndexed { i, value ->
@@ -130,7 +138,7 @@ class LocalCarPlayReceiver(
         val config = AirPlayConfig(
             deviceName = "DashTConnect", deviceId = receiverHardwareAddress(network.bssid) ?: fallbackId,
             btMac = btMac, sourceVersion = "950.7.1", port = server.localPort,
-            main = AirPlayDisplayConfig(videoSize.width, videoSize.height, fps = 30),
+            main = AirPlayDisplayConfig(videoSize.width, videoSize.height, fps = 60),
             rightHandDrive = true, microphone = true,
             mainBufferedAudio = true,
             manufacturer = "DashTConnect", model = Build.MODEL, oemLabel = "DashTConnect",
@@ -138,7 +146,7 @@ class LocalCarPlayReceiver(
         android.util.Log.i("DashTReceiver", "Audio output offered buffered=true microphone=true hardwareBluetoothAvailable=${btMac != fallbackId}")
         val sink = AndroidMediaSink(
             surface = surface, videoWidth = videoSize.width, videoHeight = videoSize.height,
-            context = app, audioFocusEnabled = true, mainVideoFrameRate = 30,
+            context = app, audioFocusEnabled = true, mainVideoFrameRate = 60,
             // Receive gaps reached 620 ms on this link; keep music buffered across those gaps.
             mediaBufferMillis = MediaAudioBuffer.MOST_STABLE_MILLIS,
             callSpeakerphone = { true },
@@ -223,12 +231,6 @@ class LocalCarPlayReceiver(
             advertisedHost = address.hostAddress, useInterfaceMdns = true,
             onEvent = { android.util.Log.i("DashTReceiver", it.diagnosticSummary()) }))
         bonjour.start()
-        touchWorker.scheduleAtFixedRate({
-            pendingTouches.getAndSet(null)?.let { points ->
-                runCatching { active.get()?.sendTouch(points.map { AirPlayContact(it.id, it.x, it.y, true) }) }
-            }
-        }, 0, 16, TimeUnit.MILLISECONDS)
-
         status("Menghubungkan Bluetooth iPhone…")
         @Suppress("MissingPermission")
         val bluetoothSocket = resources.own(phone.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_UUID)))
@@ -243,7 +245,7 @@ class LocalCarPlayReceiver(
         val result = Iap2WirelessControlClient(channel, Iap2MfiAuthenticationClient(authentication)).run(
             identification = identification.forWirelessLink(Iap2WirelessLinkRole.BLUETOOTH_BOOTSTRAP, wireless),
             endpoint = endpoint, timeoutMillis = 180_000,
-            beforeStartSession = { hotspot.validateReady(); ReceiverOfflinePolicy.requireOffline(app) },
+            beforeStartSession = { hotspot.validateReady() },
             onStartSessionSent = {
                 status("Menunggu iPhone berpindah ke Wi-Fi lokal…")
                 onWifi(network.ssid, network.passphrase)
@@ -269,21 +271,6 @@ class LocalCarPlayReceiver(
         }
     }
 
-    private fun watchInternet() {
-        val connectivity = app.getSystemService(ConnectivityManager::class.java)
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) { check() }
-            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) { check() }
-            private fun check() {
-                if (!closed.get() && ReceiverOfflinePolicy.hasInternetNetwork(app)) fail("ANDROID_INTERNET_ENABLED")
-            }
-        }
-        connectivity.registerNetworkCallback(NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET).build(), callback)
-        resources.add { connectivity.unregisterNetworkCallback(callback) }
-        ReceiverOfflinePolicy.requireOffline(app)
-    }
-
     private fun fail(reason: String) {
         if (!closed.compareAndSet(false, true)) return
         onFailure(reason)
@@ -298,6 +285,7 @@ class LocalCarPlayReceiver(
         worker.shutdownNow()
         tunnelWorker.shutdownNow()
         timers.shutdownNow()
+        touches.close()
         touchWorker.shutdownNow()
         val releases = resources.takeForClose()
         Thread({ releases.forEach { runCatching(it) } }, "dtc-receiver-close")

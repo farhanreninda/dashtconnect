@@ -1,6 +1,6 @@
 # DashTConnect Flutter Android
 
-Flutter menangani UI dan native Android menangani mesin receiver di dalam APK yang sama. Internet ditujukan tetap di iPhone dan Android tanpa WAN. Receiver eksperimental sudah diintegrasikan tetapi identitas aksesori runtime belum disertakan, sehingga sesi iPhone belum dapat diuji. Baca [alur receiver](../../docs/receiver.md) untuk persiapan dan batasannya. Dock/rail adaptif, retensi tab dan pemisahan informasi perangkat dijelaskan dalam [audit UI dan performa](../../docs/ui-performance.md).
+Flutter menangani UI dan native Android menangani mesin receiver di dalam APK yang sama. Internet CarPlay tetap melalui iPhone; Wi-Fi berinternet atau data seluler Android boleh aktif bersamaan. Receiver eksperimental sudah diintegrasikan tetapi identitas aksesori runtime belum disertakan, sehingga sesi iPhone belum dapat diuji. Baca [alur receiver](../../docs/receiver.md) untuk persiapan dan batasannya. Dock/rail adaptif, retensi tab dan pemisahan informasi perangkat dijelaskan dalam [audit UI dan performa](../../docs/ui-performance.md).
 
 ## Menjalankan
 
@@ -62,15 +62,15 @@ Hasil uji 0.6.5: setelah izin mikrofon diberikan, iPhone membuka stream musik AA
 
 1. Ikuti empat langkah pada pembukaan awal; panduan yang sama tersedia dari menu Panduan.
 2. Saat mobil parkir, hubungkan Samsung ke port USB head unit menggunakan kabel data. Buka T-Link di HU dan ikuti petunjuknya. Gunakan uji layar DashTConnect untuk memastikan gambar serta sentuhan dari HU diterima.
-3. Saat menguji jaringan, matikan data seluler Android dan putuskan akses internet Wi-Fi. Pertahankan Wi-Fi/Bluetooth untuk koneksi lokal; internet tetap dipakai di iPhone. Jangan gunakan tethering WAN iPhone ke Android.
-4. Buka Mulai receiver, izinkan perangkat sekitar dan pilih iPhone yang sudah dipasangkan. Hubungkan iPhone hanya aktif jika autentikasi aksesori siap dan jaringan Android memenuhi pemeriksaan offline. Persiapan jaringan atau diterimanya perintah start tidak menjadi bukti CarPlay aktif. Build tanpa identitas menampilkan alasan dan menonaktifkan koneksi.
-5. Jika iPhone belum otomatis bergabung, pada layar proses koneksi buka **iPhone belum masuk Wi-Fi?**. Di iPhone pilih jaringan yang ditampilkan dan tekan **Tampilkan sandi** di Samsung jika diperlukan. Ini jaringan lokal sementara tanpa internet Android. Sesi memberi waktu hingga tiga menit; kredensial tidak disimpan dalam notebook atau log dan dibuang dari layar ketika percobaan berakhir. Sesudah tersambung ke Wi-Fi, sesi CarPlay tetap harus berhasil menerima gambar sebelum dinyatakan aktif.
+3. Biarkan Wi-Fi/Bluetooth Android menyala. Wi-Fi berinternet dan data seluler tidak perlu diputus untuk memulai receiver. Aplikasi membuat jaringan Wi-Fi Direct lokal untuk iPhone; dukungan dua peran Wi-Fi bersamaan mengikuti hardware/firmware Android.
+4. Buka Mulai receiver. Persiapan otomatis meminta izin dan membuka persetujuan Bluetooth/panel Wi-Fi bila radio mati. Pairing pertama tetap melalui Settings Bluetooth. iPhone terakhir yang berhasil, atau satu-satunya ponsel yang dipasangkan, dicoba otomatis setelah persiapan selesai. Jika ada beberapa kandidat, pilih iPhone. Hubungkan iPhone hanya aktif jika autentikasi aksesori, Bluetooth dan izin receiver siap. Persiapan jaringan atau diterimanya perintah start tidak menjadi bukti CarPlay aktif. Build tanpa identitas menampilkan alasan dan menonaktifkan koneksi.
+5. Jika iPhone belum otomatis bergabung, pada layar proses koneksi buka **iPhone belum masuk Wi-Fi?**. Di iPhone pilih jaringan yang ditampilkan dan tekan **Tampilkan sandi** di Samsung jika diperlukan. Ini jaringan lokal sementara untuk sesi iPhone, terpisah dari akses internet Android. Sesi memberi waktu hingga tiga menit; kredensial tidak disimpan dalam notebook atau log dan dibuang dari layar ketika percobaan berakhir. Sesudah tersambung ke Wi-Fi, sesi CarPlay tetap harus berhasil menerima gambar sebelum dinyatakan aktif.
 
 ## Penyimpanan dan batasan
 
 Data disimpan sebagai `research.json` dalam direktori privat aplikasi melalui platform channel Android. Penulisan memakai temporary file, flush dan rename. Data rusak/versi tidak dikenali menampilkan kegagalan baca dan tidak otomatis ditimpa. Batas ukuran file 1 MB. Tidak ada unggah otomatis. Backup Android dinonaktifkan. Upgrade APK dengan paket dan signing yang sama mempertahankan data lama; menu laporan sudah dikeluarkan dari UI.
 
-Receiver memakai socket lokal dan tidak memanggil cloud auth. Manifest library menyertakan `INTERNET` untuk socket, izin Wi-Fi/Bluetooth dan audio. Preflight/callback menolak jaringan berkapabilitas internet, bukan audit paket WAN. Tidak ada pencarian paket atau pembuka receiver eksternal. Debug Flutter juga memakai socket alat pengembangan.
+Receiver memakai socket lokal dan tidak memanggil cloud auth. Manifest library menyertakan `INTERNET` untuk socket, izin Wi-Fi/Bluetooth dan audio. Mulai 0.7.4, status internet hanya informasi dan tidak menjadi prasyarat koneksi; munculnya internet tidak menghentikan receiver. Tidak ada pencarian paket atau pembuka receiver eksternal. Debug Flutter juga memakai socket alat pengembangan.
 
 Layar fisik sepenuhnya mati belum tersedia: kelanjutan T-Link saat perangkat terkunci harus diuji. Redup hanya memengaruhi jendela DashTConnect dan dipulihkan ketika aplikasi tidak di depan. Pengisian, decoding dan radio tetap menghasilkan panas. Suhu baterai bukan suhu CPU.
 

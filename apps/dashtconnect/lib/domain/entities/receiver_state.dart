@@ -11,21 +11,39 @@ class ReceiverPreparation {
     required this.bluetoothEnabled,
     required this.missingPermissions,
     required this.phones,
+    this.wifiEnabled = true,
+    this.preferredPhoneId,
   });
   final bool authenticationAvailable;
   final bool internetAvailable;
   final bool bluetoothEnabled;
   final List<String> missingPermissions;
   final List<ReceiverPhone> phones;
+  final bool wifiEnabled;
+  final String? preferredPhoneId;
+
+  String? get automaticPhoneId =>
+      phones.any((phone) => phone.id == preferredPhoneId)
+      ? preferredPhoneId
+      : phones.length == 1
+      ? phones.single.id
+      : null;
 
   bool get canStart =>
       authenticationAvailable &&
-      !internetAvailable &&
       bluetoothEnabled &&
+      wifiEnabled &&
       missingPermissions.isEmpty;
 }
 
-enum ReceiverPhase { surfaceReady, connecting, connected, error, stopped }
+enum ReceiverPhase {
+  surfaceReady,
+  surfaceLost,
+  connecting,
+  connected,
+  error,
+  stopped,
+}
 
 class ReceiverEvent {
   const ReceiverEvent(this.viewId, this.phase, this.message, {this.wifi});

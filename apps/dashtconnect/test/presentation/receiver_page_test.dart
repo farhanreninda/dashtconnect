@@ -47,13 +47,22 @@ void main() {
     await gateway.updates.close();
   });
 
-  Future<void> open(WidgetTester tester) async {
+  Future<void> open(WidgetTester tester, {bool autoConnect = false}) async {
     await tester.pumpWidget(
       MaterialApp(
-        home: ReceiverPage(receiver: gateway, device: device),
+        home: ReceiverPage(
+          receiver: gateway,
+          device: device,
+          autoConnect: autoConnect,
+        ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (autoConnect) {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+    } else {
+      await tester.pumpAndSettle();
+    }
   }
 
   testWidgets(
@@ -73,10 +82,7 @@ void main() {
         find.textContaining('Autentikasi aksesori belum disiapkan'),
         findsOneWidget,
       );
-      expect(
-        find.textContaining('Jaringan berkemampuan internet'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Putuskan sebelum memulai'), findsNothing);
       await tester.ensureVisible(find.text('Hubungkan iPhone'));
       expect(
         tester
@@ -101,7 +107,7 @@ void main() {
   );
 
   testWidgets(
-    'accepted start does not imply connected and status changes retain the surface',
+    'internet-connected Android can start and status changes retain the surface',
     (tester) async {
       tester.view.physicalSize = const Size(800, 360);
       tester.view.devicePixelRatio = 1;
@@ -115,7 +121,7 @@ void main() {
       addTearDown(tester.view.resetPadding);
       gateway.value = const ReceiverPreparation(
         authenticationAvailable: true,
-        internetAvailable: false,
+        internetAvailable: true,
         bluetoothEnabled: true,
         missingPermissions: [],
         phones: [ReceiverPhone(id: 'AA:BB:CC:DD:EE:FF', name: 'iPhone uji')],
@@ -258,6 +264,148 @@ void main() {
         scrollable: find.byType(Scrollable).first,
       );
       expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+  const phoneA = ReceiverPhone(id: 'AA:BB:CC:DD:EE:01', name: 'iPhone A');
+  const phoneB = ReceiverPhone(id: 'AA:BB:CC:DD:EE:02', name: 'iPhone B');
+  ReceiverPreparation ready({
+    List<ReceiverPhone> phones = const [phoneA],
+    String? preferred,
+    bool wifi = true,
+  }) => ReceiverPreparation(
+    authenticationAvailable: true,
+    internetAvailable: true,
+    bluetoothEnabled: true,
+    wifiEnabled: wifi,
+    preferredPhoneId: preferred,
+    missingPermissions: [],
+    phones: phones,
+  );
+
+  testWidgets(
+    'one paired phone starts automatically once and does not retry after failure',
+    (tester) async {
+      gateway.value = ready();
+      await open(tester, autoConnect: true);
+      expect(gateway.prepares, 1);
+      expect(gateway.starts, 1);
+      expect(gateway.startedPhoneId, phoneA.id);
+      gateway.updates.add(
+        ReceiverEvent(viewId, ReceiverPhase.error, 'Uji koneksi gagal'),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Periksa ulang'));
+      await tester.tap(find.text('Periksa ulang'));
+      await tester.pumpAndSettle();
+      expect(gateway.starts, 1);
+      expect(gateway.prepares, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'multiple phones require choice unless a successful phone was remembered',
+    (tester) async {
+      gateway.value = ready(phones: [phoneA, phoneB]);
+      await open(tester, autoConnect: true);
+      expect(gateway.starts, 0);
+      expect(find.textContaining('Ada beberapa perangkat'), findsOneWidget);
+      await tester.ensureVisible(find.text('iPhone B'));
+      await tester.tap(find.text('iPhone B'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Hubungkan iPhone'));
+      await tester.tap(find.text('Hubungkan iPhone'));
+      await tester.pump();
+      expect(gateway.startedPhoneId, phoneB.id);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets('automatic connection chooses the remembered paired phone', (
+    tester,
+  ) async {
+    gateway.value = ready(phones: [phoneA, phoneB], preferred: phoneB.id);
+    await open(tester, autoConnect: true);
+    expect(gateway.starts, 1);
+    expect(gateway.startedPhoneId, phoneB.id);
+    await tester.pumpWidget(const SizedBox());
+  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+
+  testWidgets(
+    'cancelling Wi-Fi setup does not start or open setup repeatedly',
+    (tester) async {
+      gateway.value = ready(wifi: false);
+      await open(tester, autoConnect: true);
+      expect(gateway.prepares, 1);
+      expect(gateway.starts, 0);
+      expect(find.textContaining('Persiapan belum lengkap'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      expect(gateway.prepares, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'closing receiver while system setup is pending prevents automatic start',
+    (tester) async {
+      gateway.value = ready();
+      final pending = Completer<ReceiverPreparation>();
+      gateway.onPrepare = () => pending.future;
+      await open(tester, autoConnect: true);
+      expect(gateway.prepares, 1);
+      await tester.pumpWidget(const SizedBox());
+      pending.complete(ready());
+      await tester.pump();
+      expect(gateway.starts, 0);
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+  testWidgets(
+    'setup returning in background waits for resume before connecting',
+    (tester) async {
+      gateway.value = ready();
+      final pending = Completer<ReceiverPreparation>();
+      gateway.onPrepare = () => pending.future;
+      await open(tester, autoConnect: true);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      pending.complete(ready());
+      await tester.pump();
+      expect(gateway.starts, 0);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump();
+      expect(gateway.starts, 1);
+      expect(gateway.prepares, 1);
+      await tester.pumpWidget(const SizedBox());
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+  testWidgets(
+    'automatic start waits for the native surface to return after settings',
+    (tester) async {
+      gateway.value = ready();
+      final pending = Completer<ReceiverPreparation>();
+      gateway.onPrepare = () => pending.future;
+      await open(tester, autoConnect: true);
+      gateway.updates.add(ReceiverEvent(viewId, ReceiverPhase.surfaceLost, ''));
+      await tester.pump();
+      pending.complete(ready());
+      await tester.pump();
+      expect(gateway.starts, 0);
+      gateway.updates.add(
+        ReceiverEvent(viewId, ReceiverPhase.surfaceReady, ''),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(gateway.starts, 1);
+      expect(gateway.prepares, 1);
       await tester.pumpWidget(const SizedBox());
     },
     variant: TargetPlatformVariant.only(TargetPlatform.android),

@@ -540,3 +540,36 @@ Padding header/isi Detail teknis disamakan menjadi 20. Waktu pembacaan terakhir 
 - Analyze bersih; 27 tes app/responsive lulus, termasuk halaman Tentang pada landscape pendek, terang/gelap dan teks hingga 200%. Render widget portrait/landscape juga ditinjau. Build final berhasil 1 menit 7 detik; teks fitur terbaru diverifikasi pada libapp.so sebelum penandatanganan. Signature valid, install -r berhasil dan aset autentikasi cocok dengan input lokal.
 - Screenshot fisik Samsung portrait memperlihatkan identitas, alur dan ketiga fitur tanpa area kosong besar di bawahnya. Landscape menyusun panel alur/fitur sama tinggi dengan scroll untuk header. Tidak ditemukan overflow yang terlihat. APK 25931403 byte, SHA-256 `32c484fbb85d28b9638b6edf5c19f765fd861a59405f68292c70ec33875314b5`. Perubahan hanya halaman informasi; sesi CarPlay/T-Link tidak diuji ulang.
 
+
+
+## 2026-10-27 — Receiver dengan internet Android aktif (0.7.4+37)
+
+- Permintaan terbaru menggantikan syarat Android offline. `internetAvailable` tetap informasi, tetapi tidak lagi memblokir tombol, native start, persiapan Wi-Fi Direct, atau iAP2 StartSession. Callback penghenti sesi ketika jaringan INTERNET muncul dihapus.
+- Listener RTSP dan mDNS tetap memakai alamat/interface grup P2P; aplikasi tidak memutus Wi-Fi, mematikan data seluler, atau mengganti default network. Autentikasi, izin, Bluetooth, pilihan perangkat dan validasi grup P2P tetap diperlukan.
+- Panduan dan pesan pada halaman receiver diperbarui. Jalur pembuatan grup 2,4 GHz dan pemilihan kanal station yang sudah ada dipertahankan.
+- PASS: `flutter analyze`, 86 tes Flutter, 29 tes JVM receiver. Regresi memeriksa bahwa internet aktif tidak memblokir canStart/start, sedangkan autentikasi/izin tetap memblokir bila belum siap.
+- PASS: build APK debug arm64, kedua aset autentikasi cocok dengan file lokal, install -r pada Samsung SM-A047F, versi 0.7.4+37. Data research.json tetap sama setelah pembaruan.
+- Perangkat: Wi-Fi berinternet tervalidasi sebelum dan sesudah pemasangan. Halaman persiapan tidak menampilkan blokir internet. Pengujian sampai video/audio belum selesai karena daftar perangkat Bluetooth tidak memuat iPhone yang dipasangkan. Pengguna diminta memasangkan kembali untuk pengujian fisik; tidak menganggap prasyarat lolos sebagai bukti sesi CarPlay aktif.
+- Belum diuji: Wi-Fi STA + P2P sampai sesi video/audio bersama iPhone dan head unit T-Link. Dukungan bersamaan mengikuti firmware/hardware Android.
+
+
+## 2026-10-27 — Persiapan dan koneksi otomatis (0.7.5+38)
+
+- `prepareConnection` menyiapkan izin, Bluetooth lewat ACTION_REQUEST_ENABLE, Wi-Fi lewat panel sistem, serta membuka Settings Bluetooth jika pairing pertama diperlukan. Pembatalan tidak memicu loop permintaan. Dialog harus disetujui pengguna sesuai pembatasan Android.
+- Dari Beranda → Mulai receiver, iPhone terakhir yang berhasil dipilih jika masih dipasangkan; jika tidak ada riwayat, hanya satu kandidat ponsel boleh dipilih otomatis. Banyak kandidat memerlukan pilihan pengguna. Perangkat non-phone tidak dipilih sembarang, dan tidak memakai RSSI untuk menebak iPhone terdekat.
+- Riwayat ditulis hanya setelah runtime iAP2 + frame pertama memicu connected. Setup yang masih menunggu panel tidak memulai sesi ketika background/dispose. SurfaceView mengirim surface_lost/surface_ready agar start tidak mendahului kembalinya layar setelah Settings.
+- PASS: 96 tes Flutter, termasuk pemilihan kandidat, Wi-Fi/internet, parser hasil setup, pembatalan tanpa loop, beberapa perangkat, penutupan halaman, background/resume, dan surface yang hilang/kembali. `flutter analyze`: tidak ada masalah. Build APK debug arm64 berhasil.
+- PASS perangkat fisik: APK 0.7.5+38 dipasang ke Samsung SM-A047F, file autentikasi cocok dengan sumber lokal dan research.json tidak berubah. Saat Mulai receiver ditekan, Android menampilkan permintaan mengaktifkan Bluetooth. Setelah Bolehkan disetujui, iPhone terhubung otomatis dan grid CarPlay tampil tanpa menekan Hubungkan atau memilih perangkat secara manual.
+- PASS jaringan fisik: bagian Current Networks dari dumpsys connectivity masih memuat Wi-Fi INTERNET + VALIDATED saat CarPlay berstatus terhubung. Private preference last_phone tersimpan dalam format alamat valid. Bukti screenshot lokal: `.local-tools/qa/auto-receiver-connected.png` (tidak dipublikasikan).
+- Batas pengujian: panel Wi-Fi dari keadaan mati belum dicoba secara fisik agar koneksi Wi-Fi berinternet saat pengujian tetap utuh; pembatalan/readiness diuji otomatis. Audio, head unit T-Link dan kestabilan jangka panjang belum diuji ulang pada versi ini. Tidak ada janji semua perangkat mendukung Wi-Fi station + P2P bersamaan.
+
+
+## 2026-10-27 — Respons kontrol receiver (0.7.6+39)
+
+- Pengiriman sentuhan memakai worker langsung, menggantikan polling 16 ms dengan satu slot yang dapat menimpa tekan/lepas. Gerakan digabung saat tertahan; transisi pointer tetap berurutan. Batas 64 paket mereset gestur yang tertinggal agar tidak memainkan antrean input lama. Tidak ada operasi socket di thread UI.
+- Penawaran video utama dan operating rate decoder dinaikkan dari 30 ke 60 fps pada resolusi yang sama. Buffer musik tidak dikurangi. WifiLock LOW_LATENCY diminta selama sesi (HIGH_PERF untuk API di bawah 29); WAKE_LOCK adalah permission normal. Lock dibersihkan bersama resource sesi, termasuk saat startup gagal.
+- PASS: 33 tes JVM receiver, termasuk empat regresi untuk tap cepat, penggabungan gerakan, pergantian pointer, antrean tertahan dan shutdown. Build APK arm64 berhasil. APK 0.7.6+39 dipasang dengan install -r; aset autentikasi diverifikasi dan research.json tetap sama. Flutter tidak diubah selain nomor versi, sehingga suite Flutter tidak dijalankan ulang untuk perubahan ini.
+- Sampel awal 0.7.5: swipe grid CarPlay memakai input swipe 400 ms, jeda 350 ms. Tiga jendela mencatat 17,4 / 25,6 / 10,6 fps tampil; touch2frame rata-rata 75 / 60 / 81 ms, decoder p90 13–14 ms, max arrival gap 297–334 ms. Peningkatan 60 fps dan dispatcher saja belum menunjukkan perbaikan berarti (21,4–25,6 fps pada jendela aktif, touch2frame 65–78 ms).
+- PASS perangkat fisik dengan lock: dumpsys wifi memuat WifiLock DashTConnect:receiver type=4 selama sesi; CarPlay connected dan Wi-Fi INTERNET + VALIDATED bersamaan. Setelah keluar, lock hilang setelah cleanup sesi asinkron. Receiver dibuka kembali untuk pemakaian pengguna.
+- Pengulangan 18 swipe setelah lock: empat jendela mencatat 32,4 / 54,7 / 54,1 / 36,6 fps tampil, touch2frame rata-rata 38 / 34 / 25 / 38 ms, decoder p90 9–11 ms, tanpa recovery decoder. Max gap masih 160–290 ms. Bukti lokal: .local-tools/qa/smooth-wifi-repeat.log; bukan aset publik.
+- Batas: touch2frame mengukur kirim HID ke frame diterima berikutnya, bukan latensi sentuhan sampai piksel yang terbukti terkait. Jendela memuat jeda antar-swipe, bukan benchmark fps kontinu. Sampel sebelum/sesudah diambil pada waktu berbeda sehingga tidak mengisolasi perubahan kondisi radio. Audio, head unit T-Link, suhu/daya dan sesi panjang belum diuji ulang. Tidak menyatakan bebas lag atau 60 fps stabil.

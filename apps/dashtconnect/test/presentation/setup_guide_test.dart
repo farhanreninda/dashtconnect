@@ -62,13 +62,15 @@ void main() {
     expect(displayOpens, 1);
     expect(completions, 0);
     await _tap(tester, find.byKey(const Key('guide-next')));
-    expect(find.text('Android tetap offline'), findsOneWidget);
+    expect(find.text('Hubungkan tanpa memutus Wi-Fi'), findsOneWidget);
     expect(
       find.textContaining('Internet tetap digunakan di iPhone'),
       findsOneWidget,
     );
     expect(
-      find.textContaining('Jangan gunakan tethering internet'),
+      find.textContaining(
+        'Wi-Fi berinternet dan data seluler Android boleh tetap aktif.',
+      ),
       findsOneWidget,
     );
     expect(

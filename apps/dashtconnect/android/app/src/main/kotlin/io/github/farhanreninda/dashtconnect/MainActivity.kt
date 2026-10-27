@@ -1,5 +1,6 @@
 package io.github.farhanreninda.dashtconnect
 
+import android.content.Intent
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.github.farhanreninda.dashtconnect.platform.DeviceChannel
@@ -41,5 +42,11 @@ class MainActivity : FlutterActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         receiverChannel?.permissionsResult(requestCode)
+    }
+
+    @Deprecated("Activity result bridge for receiver system panels")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        receiverChannel?.activityResult(requestCode)
     }
 }

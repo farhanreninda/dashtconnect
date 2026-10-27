@@ -19,11 +19,13 @@ class ReceiverPage extends StatefulWidget {
     required this.device,
     this.initiallyDimmed = false,
     this.onDimmedChanged,
+    this.autoConnect = false,
   });
   final ReceiverGateway receiver;
   final DeviceGateway device;
   final bool initiallyDimmed;
   final ValueChanged<bool>? onDimmedChanged;
+  final bool autoConnect;
 
   @override
   State<ReceiverPage> createState() => _ReceiverPageState();
@@ -42,6 +44,7 @@ class _ReceiverPageState extends State<ReceiverPage>
   bool _reading = false, _surfaceReady = false, _orientationReady = false;
   late bool _dimmed;
   bool _dimBusy = false;
+  bool _autoAttempted = false, _setupBusy = false, _automaticPending = false;
   bool get _running =>
       _phase == ReceiverPhase.connecting || _phase == ReceiverPhase.connected;
 
@@ -86,6 +89,12 @@ class _ReceiverPageState extends State<ReceiverPage>
     if (!mounted || event.viewId != _viewId) return;
     if (event.phase == ReceiverPhase.surfaceReady) {
       setState(() => _surfaceReady = true);
+      _maybeAutoConnect();
+      _resumeAutomaticStart();
+      return;
+    }
+    if (event.phase == ReceiverPhase.surfaceLost) {
+      setState(() => _surfaceReady = false);
       return;
     }
     setState(() {
@@ -140,6 +149,7 @@ class _ReceiverPageState extends State<ReceiverPage>
     if (state == AppLifecycleState.resumed) {
       _refresh();
       _updateSystemUi();
+      _resumeAutomaticStart();
     }
     if (state == AppLifecycleState.paused) _stop();
   }
@@ -170,7 +180,74 @@ class _ReceiverPageState extends State<ReceiverPage>
       }
     } finally {
       if (mounted) setState(() => _reading = false);
+      _maybeAutoConnect();
     }
+  }
+
+  void _maybeAutoConnect() {
+    if (!mounted ||
+        !widget.autoConnect ||
+        _autoAttempted ||
+        _reading ||
+        !_surfaceReady ||
+        _preparation?.authenticationAvailable != true) {
+      return;
+    }
+    _autoAttempted = true;
+    unawaited(_connectAutomatically());
+  }
+
+  Future<void> _connectAutomatically() async {
+    if (_reading || _setupBusy || _running) return;
+    setState(() {
+      _setupBusy = true;
+      _reading = true;
+      _error = null;
+    });
+    try {
+      final value = await widget.receiver.prepareConnection();
+      if (!mounted) return;
+      final phone = value.phones.any((phone) => phone.id == _phoneId)
+          ? _phoneId
+          : value.automaticPhoneId;
+      setState(() {
+        _preparation = value;
+        _phoneId = phone;
+        _automaticPending = value.canStart && phone != null;
+        _error = !value.canStart
+            ? 'Persiapan belum lengkap. Setujui izin serta aktifkan Bluetooth dan Wi-Fi untuk melanjutkan.'
+            : value.phones.isEmpty
+            ? 'Pasangkan iPhone melalui Bluetooth terlebih dahulu. Setelah dipasangkan, coba hubungkan kembali.'
+            : phone == null
+            ? 'Ada beberapa perangkat. Pilih iPhone yang ingin dihubungkan.'
+            : null;
+      });
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _automaticPending = false;
+          _error = error is PlatformException
+              ? error.message
+              : 'Persiapan otomatis belum berhasil. Coba lagi.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _setupBusy = false;
+          _reading = false;
+        });
+        _resumeAutomaticStart();
+      }
+    }
+  }
+
+  void _resumeAutomaticStart() {
+    if (!mounted || _setupBusy || !_automaticPending || !_surfaceReady) return;
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (state != null && state != AppLifecycleState.resumed) return;
+    _automaticPending = false;
+    unawaited(_start());
   }
 
   Future<void> _start() async {
@@ -435,8 +512,8 @@ class _ReceiverPageState extends State<ReceiverPage>
               const SizedBox(height: 16),
               const ConnectionRoute(),
               const SizedBox(height: 12),
-              const AppNotice.warning(
-                'Matikan data seluler dan putuskan Wi-Fi berinternet di Android. Biarkan Wi-Fi dan Bluetooth aktif.',
+              const AppNotice(
+                'Biarkan Wi-Fi dan Bluetooth aktif. Wi-Fi berinternet atau data seluler Android tidak perlu diputus sebelum menghubungkan iPhone.',
               ),
               const SizedBox(height: 12),
               if (_reading) ...[
@@ -449,12 +526,6 @@ class _ReceiverPageState extends State<ReceiverPage>
                 if (!ready.authenticationAvailable) ...[
                   const AppNotice.warning(
                     'Receiver belum siap pada build ini. Autentikasi aksesori belum disiapkan.',
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (ready.internetAvailable) ...[
-                  const AppNotice.warning(
-                    'Jaringan berkemampuan internet masih terdeteksi di Android. Putuskan sebelum memulai.',
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -480,7 +551,7 @@ class _ReceiverPageState extends State<ReceiverPage>
               ),
               const SizedBox(height: 8),
               const Text(
-                'Pilih perangkat yang sudah dipasangkan melalui Bluetooth.',
+                'iPhone terakhir atau satu-satunya ponsel yang dipasangkan dapat dihubungkan otomatis. Jika ada beberapa, pilih perangkat di bawah.',
               ),
               const SizedBox(height: 12),
               if (ready != null) ...[
@@ -550,9 +621,10 @@ class _ReceiverPageState extends State<ReceiverPage>
                 onPressed:
                     !_reading &&
                         _surfaceReady &&
-                        ready?.canStart == true &&
-                        _phoneId != null
-                    ? _start
+                        ready?.authenticationAvailable == true
+                    ? ready?.canStart == true && _phoneId != null
+                          ? _start
+                          : _connectAutomatically
                     : null,
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: const Text('Hubungkan iPhone'),

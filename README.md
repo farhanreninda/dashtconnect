@@ -1,14 +1,14 @@
 # DashTConnect
 
-DashTConnect dikembangkan sebagai aplikasi Android mandiri untuk menerima sesi iPhone dan meneruskannya ke layar mobil melalui T-Link. Targetnya, internet tetap digunakan di iPhone dan Android hanya memakai koneksi lokal tanpa akses internet.
+DashTConnect dikembangkan sebagai aplikasi Android mandiri untuk menerima sesi iPhone dan meneruskannya ke layar mobil melalui T-Link. CarPlay memakai koneksi lokal ke iPhone, sedangkan Wi-Fi berinternet atau data seluler Android boleh tetap aktif.
 
 ## Beranda
 
-Tombol Mulai receiver membuka persiapan sambungan langsung ke iPhone. Aplikasi memeriksa izin perangkat sekitar, Bluetooth, daftar iPhone yang sudah dipasangkan, jaringan Android dan kesiapan autentikasi aksesori. Beranda berfokus pada koneksi iPhone; tutorial dan pengecekan T-Link tersedia di tab Panduan.
+Tombol Mulai receiver membuka persiapan sambungan dan mencoba iPhone terakhir yang berhasil terhubung, atau satu-satunya ponsel yang sudah dipasangkan. Bila ada beberapa perangkat tanpa riwayat, pengguna memilih iPhone. Aplikasi meminta izin serta menampilkan dialog Bluetooth atau panel Wi-Fi jika perlu; pemasangan pertama tetap disetujui melalui pengaturan Bluetooth. Aplikasi memeriksa izin perangkat sekitar, Bluetooth, daftar iPhone yang sudah dipasangkan, jaringan Android dan kesiapan autentikasi aksesori. Beranda berfokus pada koneksi iPhone; tutorial dan pengecekan T-Link tersedia di tab Panduan.
 
 ## Receiver iPhone
 
-Mesin receiver eksperimental berada di dalam DashTConnect. Bluetooth menyiapkan sesi dan Wi-Fi lokal membawa gambar serta audio dari iPhone. Status terhubung memerlukan sesi runtime dan gambar yang benar-benar dirender. Pengguna dapat menghentikan receiver; sesi juga dihentikan saat aplikasi masuk ke background atau jaringan berkemampuan internet terdeteksi di Android.
+Mesin receiver eksperimental berada di dalam DashTConnect. Bluetooth menyiapkan sesi dan Wi-Fi lokal membawa gambar serta audio dari iPhone. Status terhubung memerlukan sesi runtime dan gambar yang benar-benar dirender. Pengguna dapat menghentikan receiver; sesi juga dihentikan saat aplikasi masuk ke background. Internet Android tidak lagi menghalangi start atau menghentikan sesi.
 
 Saat tersambung, CarPlay memakai layar penuh dengan rasio yang mengikuti layar Android. Pintasan di kiri bawah menyediakan redup/pulihkan kecerahan dan kontrol untuk menghentikan sesi. Tombol dapat digeser agar tidak menutupi kontrol CarPlay, lalu kembali ke posisi awal setelah sepuluh detik tanpa interaksi.
 
@@ -16,7 +16,7 @@ Bantuan Wi-Fi pada layar koneksi menampilkan nama jaringan sementara dan menyedi
 
 ## Panduan awal
 
-Empat langkah membantu mengenali alur koneksi, menyiapkan Android, memeriksa tampilan T-Link dan menyiapkan Android tanpa internet. Panduan muncul saat pertama kali dibuka, dapat dilewati dan bisa diulang melalui menu Panduan. Tombol Wi-Fi dan Bluetooth membuka pengaturan Android langsung dari menu ini.
+Empat langkah membantu mengenali alur koneksi, menyiapkan Android, memeriksa tampilan T-Link dan menghubungkan iPhone tanpa memutus Wi-Fi secara manual. Panduan muncul saat pertama kali dibuka, dapat dilewati dan bisa diulang melalui menu Panduan. Tombol Wi-Fi dan Bluetooth membuka pengaturan Android langsung dari menu ini.
 
 ## Uji tampilan dan sentuhan
 
@@ -41,3 +41,5 @@ Halaman Tentang menampilkan identitas aplikasi, versi terpasang, tujuan pengemba
 ## Kemampuan saat ini
 
 Gambar, sentuhan dan suara musik CarPlay telah berhasil diuji dari iPhone 11 ke Samsung A04s melalui Wi-Fi lokal 2,4 GHz. Android memakai koneksi lokal dengan data seluler mati; internet tetap dari iPhone. Build uji pribadi memakai autentikasi eksperimen. Receiver memerlukan izin mikrofon agar iPhone mengenali jalur audio dengan lengkap. Siri, panggilan, output T-Link, kestabilan jangka panjang, layar sepenuhnya mati dan pengaruhnya terhadap panas masih memerlukan pengujian perangkat.
+
+Versi 0.7.5 juga telah diuji menghubungkan iPhone otomatis setelah persetujuan menyalakan Bluetooth, sementara Wi-Fi berinternet Samsung tetap tersambung. Pemasangan awal perangkat dan pengaktifan radio tetap mengikuti persetujuan sistem Android.

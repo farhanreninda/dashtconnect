@@ -35,6 +35,7 @@ class MethodChannelReceiverGateway implements ReceiverGateway {
             id,
             switch (phase) {
               'surface_ready' => ReceiverPhase.surfaceReady,
+              'surface_lost' => ReceiverPhase.surfaceLost,
               'connecting' => ReceiverPhase.connecting,
               'connected' => ReceiverPhase.connected,
               'error' => ReceiverPhase.error,
@@ -59,21 +60,36 @@ class MethodChannelReceiverGateway implements ReceiverGateway {
   Future<ReceiverPreparation> requestPermissions() async =>
       _parse(await _methods.invokeMethod<Object?>('requestPermissions'));
 
+  @override
+  Future<ReceiverPreparation> prepareConnection() async =>
+      _parse(await _methods.invokeMethod<Object?>('prepareConnection'));
+
   ReceiverPreparation _parse(Object? value) {
     if (value
         case {
           'authenticationAvailable': bool auth,
           'internetAvailable': bool internet,
           'bluetoothEnabled': bool bluetooth,
+          'wifiEnabled': bool wifi,
           'missingPermissions': List permissions,
           'phones': List phones,
         }
         when permissions.length <= 8 && phones.length <= 128) {
       final ids = <String>{};
+      final preferred = value['preferredPhoneId'];
+      if (preferred != null &&
+          (preferred is! String ||
+              !phones.any(
+                (phone) => phone is Map && phone['id'] == preferred,
+              ))) {
+        throw const FormatException('iPhone terakhir tidak valid.');
+      }
       return ReceiverPreparation(
         authenticationAvailable: auth,
         internetAvailable: internet,
         bluetoothEnabled: bluetooth,
+        wifiEnabled: wifi,
+        preferredPhoneId: preferred as String?,
         missingPermissions: List.unmodifiable(
           permissions.map((item) {
             if (item is! String || item.isEmpty || item.length > 128) {

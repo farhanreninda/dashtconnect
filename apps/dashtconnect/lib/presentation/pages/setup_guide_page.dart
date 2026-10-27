@@ -67,7 +67,7 @@ class _SetupGuidePageState extends State<SetupGuidePage> {
       'Kenali alur koneksi',
       'Siapkan Android',
       'Hubungkan ke T-Link',
-      'Android tetap offline',
+      'Hubungkan tanpa memutus Wi-Fi',
     ];
     return PopScope(
       canPop: !_working,
@@ -252,10 +252,10 @@ class _SetupGuidePageState extends State<SetupGuidePage> {
         'Internet tetap digunakan di iPhone.',
       ),
       const SizedBox(height: 20),
-      const AppNotice.warning(
-        'Matikan data seluler Android dan putuskan akses internet Wi-Fi. '
-        'Wi-Fi/Bluetooth tetap boleh aktif untuk koneksi lokal ke iPhone. '
-        'Jangan gunakan tethering internet iPhone ke Android.',
+      const AppNotice(
+        'Wi-Fi berinternet dan data seluler Android boleh tetap aktif. '
+        'Biarkan Wi-Fi dan Bluetooth menyala; aplikasi menyiapkan koneksi lokal ke iPhone. '
+        'Dukungan Wi-Fi bersamaan mengikuti kemampuan perangkat.',
       ),
       const SizedBox(height: 20),
       Text('Fungsi yang tersedia', style: theme.textTheme.titleMedium),

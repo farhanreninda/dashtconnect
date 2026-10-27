@@ -18,6 +18,9 @@ class TestReceiverGateway implements ReceiverGateway {
   final updates = StreamController<ReceiverEvent>.broadcast();
   int starts = 0, stops = 0, requests = 0;
   bool failStart = false;
+  int prepares = 0;
+  String? startedPhoneId;
+  Future<ReceiverPreparation> Function()? onPrepare;
   @override
   Stream<ReceiverEvent> get events => updates.stream;
   @override
@@ -29,8 +32,15 @@ class TestReceiverGateway implements ReceiverGateway {
   }
 
   @override
+  Future<ReceiverPreparation> prepareConnection() async {
+    prepares++;
+    return onPrepare == null ? value : await onPrepare!();
+  }
+
+  @override
   Future<void> start({required int viewId, required String phoneId}) async {
     starts++;
+    startedPhoneId = phoneId;
     if (failStart) throw StateError('Test startup failure');
   }
 

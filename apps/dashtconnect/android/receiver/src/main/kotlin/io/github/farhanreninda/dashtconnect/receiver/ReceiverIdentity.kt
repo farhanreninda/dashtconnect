@@ -8,7 +8,6 @@ import com.shilapi.xcertplay.airplay.AirPlayIdentity
 import com.shilapi.xcertplay.airplay.PairingStore
 import com.shilapi.xcertplay.mfi.LocalMfiAuthenticationClient
 import java.io.File
-import java.io.IOException
 
 internal fun receiverHardwareAddress(value: String?): String? = value?.uppercase()?.takeIf {
     Regex("[0-9A-F]{2}(:[0-9A-F]{2}){5}").matches(it) &&
@@ -93,7 +92,7 @@ object ReceiverIdentity {
     private fun decode(text: String) = Base64.decode(text, Base64.NO_WRAP)
 }
 
-object ReceiverOfflinePolicy {
+object ReceiverNetworkStatus {
     fun hasInternetNetwork(context: Context): Boolean {
         val connectivity = context.getSystemService(ConnectivityManager::class.java)
         return connectivity.allNetworks.any { network ->
@@ -102,7 +101,4 @@ object ReceiverOfflinePolicy {
         }
     }
 
-    internal fun requireOffline(context: Context) {
-        if (hasInternetNetwork(context)) throw IOException("ANDROID_INTERNET_ENABLED")
-    }
 }

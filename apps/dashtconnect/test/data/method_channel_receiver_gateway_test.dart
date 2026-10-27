@@ -12,6 +12,7 @@ void main() {
     'authenticationAvailable': true,
     'internetAvailable': false,
     'bluetoothEnabled': true,
+    'wifiEnabled': true,
     'missingPermissions': <String>[],
     'phones': [
       {'id': 'AA:BB:CC:DD:EE:FF', 'name': 'iPhone uji'},
@@ -83,7 +84,7 @@ void main() {
       expect(prepared.canStart, isTrue);
       expect(prepared.phones.single.name, 'iPhone uji');
       response['internetAvailable'] = true;
-      expect((await gateway.preparation()).canStart, isFalse);
+      expect((await gateway.preparation()).canStart, isTrue);
       response = {...valid, 'authenticationAvailable': false};
       expect((await gateway.preparation()).canStart, isFalse);
       response = {
@@ -151,6 +152,29 @@ void main() {
         throwsA(isA<PlatformException>()),
       );
       expect(requests, 1);
+    },
+  );
+  test(
+    'automatic setup validates Wi-Fi readiness and remembered paired identity',
+    () async {
+      var response = {...valid, 'preferredPhoneId': 'AA:BB:CC:DD:EE:FF'};
+      final calls = <String>[];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call.method);
+        return response;
+      });
+      final gateway = MethodChannelReceiverGateway();
+      expect(
+        (await gateway.prepareConnection()).automaticPhoneId,
+        'AA:BB:CC:DD:EE:FF',
+      );
+      expect(calls, ['prepareConnection']);
+      response = {...valid, 'wifiEnabled': false};
+      expect((await gateway.prepareConnection()).canStart, isFalse);
+      response = {...valid, 'preferredPhoneId': 'AA:BB:CC:DD:EE:01'};
+      await expectLater(gateway.prepareConnection(), throwsFormatException);
+      response = {...valid, 'wifiEnabled': 'yes'};
+      await expectLater(gateway.prepareConnection(), throwsFormatException);
     },
   );
 }
