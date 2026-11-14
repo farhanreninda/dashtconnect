@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/app_version.dart';
 import '../../domain/entities/notebook.dart';
@@ -37,6 +38,36 @@ class _ResearchHomeState extends State<ResearchHome> {
   int _page = 0;
   final _visited = <int>{0};
   bool _dimmed = false, _dimBusy = false;
+  Timer? _exitArmed;
+  static const _exitWindow = Duration(seconds: 2);
+
+  void _requestExit() {
+    if (_exitArmed?.isActive ?? false) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      SystemNavigator.pop();
+      return;
+    }
+    _exitArmed = Timer(_exitWindow, () {});
+    final color = Theme.of(context).colorScheme.primary;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          duration: _exitWindow,
+          content: Row(
+            children: [
+              Icon(Icons.logout_rounded, color: color, size: 20),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Tekan kembali sekali lagi untuk keluar dari DashTConnect',
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+  }
 
   void _selectPage(int index) {
     if (_page == index) return;
@@ -136,6 +167,7 @@ class _ResearchHomeState extends State<ResearchHome> {
 
   @override
   void dispose() {
+    _exitArmed?.cancel();
     unawaited(widget.bridge.setDimmed(false).catchError((Object _) {}));
     super.dispose();
   }
@@ -446,63 +478,69 @@ class _ResearchHomeState extends State<ResearchHome> {
     final size = MediaQuery.sizeOf(context);
     final rail =
         size.width >= 840 || (size.width >= 600 && size.width > size.height);
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                'assets/branding/dashtconnect-logo.png',
-                width: 34,
-                height: 34,
-                cacheWidth: 128,
-                cacheHeight: 128,
-                excludeFromSemantics: true,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _requestExit();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/branding/dashtconnect-logo.png',
+                  width: 34,
+                  height: 34,
+                  cacheWidth: 128,
+                  cacheHeight: 128,
+                  excludeFromSemantics: true,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            const Flexible(
-              child: Text('DashTConnect', overflow: TextOverflow.ellipsis),
-            ),
-          ],
+              const SizedBox(width: 10),
+              const Flexible(
+                child: Text('DashTConnect', overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
         ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (rail)
-              AppNavigation(
-                rail: true,
-                selectedIndex: _page,
-                onSelected: _selectPage,
+        body: SafeArea(
+          top: false,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (rail)
+                AppNavigation(
+                  rail: true,
+                  selectedIndex: _page,
+                  onSelected: _selectPage,
+                ),
+              Expanded(
+                child: IndexedStack(
+                  index: _page,
+                  children: [
+                    for (var index = 0; index < 3; index++)
+                      TickerMode(
+                        enabled: index == _page,
+                        child: !_visited.contains(index)
+                            ? const SizedBox.shrink()
+                            : switch (index) {
+                                0 => _home(),
+                                1 => _guide(),
+                                _ => _settings(),
+                              },
+                      ),
+                  ],
+                ),
               ),
-            Expanded(
-              child: IndexedStack(
-                index: _page,
-                children: [
-                  for (var index = 0; index < 3; index++)
-                    TickerMode(
-                      enabled: index == _page,
-                      child: !_visited.contains(index)
-                          ? const SizedBox.shrink()
-                          : switch (index) {
-                              0 => _home(),
-                              1 => _guide(),
-                              _ => _settings(),
-                            },
-                    ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+        bottomNavigationBar: rail
+            ? null
+            : AppNavigation(selectedIndex: _page, onSelected: _selectPage),
       ),
-      bottomNavigationBar: rail
-          ? null
-          : AppNavigation(selectedIndex: _page, onSelected: _selectPage),
     );
   }
 }

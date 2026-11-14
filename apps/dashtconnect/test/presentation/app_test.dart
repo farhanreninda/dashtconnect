@@ -21,6 +21,43 @@ ResearchApp _app({
 );
 
 void main() {
+  testWidgets('back on home asks once, then exits only within two seconds', (
+    tester,
+  ) async {
+    var exits = 0;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'SystemNavigator.pop') exits++;
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.pumpWidget(
+      _app(repository: _readyRepository(), device: TestDeviceGateway()),
+    );
+    await tester.pumpAndSettle();
+    const hint = 'Tekan kembali sekali lagi untuk keluar dari DashTConnect';
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(find.text(hint), findsOneWidget);
+    expect(exits, 0);
+    await tester.pump(const Duration(seconds: 3));
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(exits, 0, reason: 'a late second press starts over');
+    await tester.binding.handlePopRoute();
+    await tester.pump();
+    expect(exits, 1);
+    expect(find.text('Mulai receiver'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
     'setup tutorial is available from the guide tab without a duplicate home action',
     (tester) async {

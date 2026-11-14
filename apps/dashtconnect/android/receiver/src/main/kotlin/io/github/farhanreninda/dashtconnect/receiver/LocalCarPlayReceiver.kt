@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.os.Build
 import android.net.wifi.WifiManager
@@ -26,6 +27,8 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.FutureTask
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -101,6 +104,9 @@ class LocalCarPlayReceiver(
         val adapter = app.getSystemService(BluetoothManager::class.java)?.adapter
             ?: throw IOException("BLUETOOTH_UNAVAILABLE")
         if (!adapter.isEnabled) throw IOException("BLUETOOTH_DISABLED")
+        // Page the iPhone while the local group forms instead of after it.
+        val bluetooth = FutureTask(::connectBluetooth)
+        Thread(bluetooth, "dtc-bluetooth-connect").apply { isDaemon = true; start() }
 
         val wifiLock = runCatching {
             @Suppress("DEPRECATION")
@@ -115,10 +121,19 @@ class LocalCarPlayReceiver(
         if (wifiLock != null) resources.add { if (wifiLock.isHeld) wifiLock.release() }
 
         status("Menyiapkan Wi-Fi lokal…")
-        val hotspot = resources.own(WifiP2pGroupManager(app,
-            preferredChannel = WifiP2pChannels.AUTO_2_4_GHZ, deviceBrand = Build.MANUFACTURER))
-        val network = hotspot.start(25_000)
-        android.util.Log.i("DashTReceiver", "Wi-Fi local frequencyMHz=${network.frequencyMHz}")
+        @Suppress("DEPRECATION")
+        val stationMHz = app.getSystemService(WifiManager::class.java)?.connectionInfo?.frequency ?: -1
+        val aligned = receiverP2pChannel(stationMHz)
+        fun group(channel: Int) = resources.own(WifiP2pGroupManager(app,
+            preferredChannel = channel, deviceBrand = Build.MANUFACTURER))
+        val first = group(aligned)
+        val (hotspot, network) = try { first to first.start(25_000) } catch (error: Exception) {
+            if (closed.get() || aligned == WifiP2pChannels.AUTO_2_4_GHZ) throw error
+            android.util.Log.w("DashTReceiver", "Station-aligned group refused; using 2.4 GHz")
+            first.close()
+            group(WifiP2pChannels.AUTO_2_4_GHZ).let { it to it.start(25_000) }
+        }
+        android.util.Log.i("DashTReceiver", "Wi-Fi local stationMHz=$stationMHz frequencyMHz=${network.frequencyMHz}")
         val address = network.hostAddresses.filterIsInstance<Inet4Address>().firstOrNull()
             ?: network.hostAddress ?: throw IOException("LOCAL_ADDRESS_UNAVAILABLE")
         val fallbackId = identity.publicKey.take(6).mapIndexed { i, value ->
@@ -232,13 +247,7 @@ class LocalCarPlayReceiver(
             onEvent = { android.util.Log.i("DashTReceiver", it.diagnosticSummary()) }))
         bonjour.start()
         status("Menghubungkan Bluetooth iPhone…")
-        @Suppress("MissingPermission")
-        val bluetoothSocket = resources.own(phone.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_UUID)))
-        val connected = AtomicBoolean(false)
-        val connectTimeout = timers.schedule({ if (!connected.get()) runCatching { bluetoothSocket.close() } }, 20, TimeUnit.SECONDS)
-        bluetoothSocket.connect()
-        connected.set(true)
-        connectTimeout.cancel(false)
+        val bluetoothSocket = try { bluetooth.get() } catch (error: ExecutionException) { throw error.cause ?: error }
         val stream = resources.own(BluetoothRfcommDuplexStream(bluetoothSocket))
         val channel = resources.own(Iap2Session.openWireless(stream))
         status("Memasangkan dan mengautentikasi iPhone…")
@@ -262,6 +271,26 @@ class LocalCarPlayReceiver(
         if (!closed.get() && result.carPlayStartSessionsSent == 0 && !runtimeReady.get()) {
             throw IOException("IPHONE_BOOTSTRAP_ENDED")
         }
+    }
+
+    @Suppress("MissingPermission")
+    private fun connectBluetooth(): BluetoothSocket {
+        var last: Exception = IOException("BLUETOOTH_CONNECT_FAILED")
+        repeat(BLUETOOTH_ATTEMPTS) { attempt ->
+            if (closed.get()) throw IOException("RECEIVER_CLOSED")
+            val socket = resources.own(phone.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_UUID)))
+            val timeout = timers.schedule({ runCatching { socket.close() } }, 12, TimeUnit.SECONDS)
+            try {
+                socket.connect()
+                return socket
+            } catch (error: IOException) {
+                last = error
+                runCatching { socket.close() }
+                android.util.Log.w("DashTReceiver", "Bluetooth attempt ${attempt + 1} failed")
+                if (attempt < BLUETOOTH_ATTEMPTS - 1) Thread.sleep(1_000)
+            } finally { timeout.cancel(false) }
+        }
+        throw last
     }
 
     private fun confirmConnection(confirmHotspot: () -> Unit) {
@@ -293,6 +322,7 @@ class LocalCarPlayReceiver(
     }
 
     companion object {
+        private const val BLUETOOTH_ATTEMPTS = 3
         private const val IAP2_UUID = "00000000-deca-fade-deca-deafdecacafe"
     }
 }

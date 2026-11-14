@@ -239,6 +239,7 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
         private var surfaceReady = false
         private var receiver: LocalCarPlayReceiver? = null
         @Volatile private var attempt = 0
+        @Volatile private var reconnects = 0
 
         init {
             if (Build.VERSION.SDK_INT >= 28) {
@@ -295,13 +296,26 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
             stop()
             surface.keepScreenOn = true
             val current = ++attempt
+            var wasConnected = false
             receiver = LocalCarPlayReceiver(activity, surface.holder.surface, phone,
                 onStatus = { if (current == attempt) emit(id, "connecting", it) },
                 onConnected = { if (current == attempt) {
+                    wasConnected = true
+                    reconnects = 0
                     connectionPreferences.edit().putString("last_phone", phone.address).apply()
                     emit(id, "connected", "CarPlay diterima dari iPhone")
                 } },
-                onFailure = { reason -> if (current == attempt) emit(id, "error", failureMessage(reason)) },
+                onFailure = { reason -> if (current == attempt) {
+                    if (wasConnected && reason in droppedSession && reconnects < MAX_RECONNECTS) {
+                        reconnects++
+                        emit(id, "connecting", "Koneksi terputus. Menghubungkan ulang iPhone…")
+                        main.postDelayed({
+                            // The failed receiver already released itself; skip the "stopped" event.
+                            if (current == attempt && surfaceReady) runCatching { receiver = null; start(phoneId) }
+                                .onFailure { emit(id, "error", it.message ?: failureMessage(reason)) }
+                        }, RECONNECT_DELAY_MILLIS)
+                    } else emit(id, "error", failureMessage(reason))
+                } },
                 provisionedBluetoothAddress = io.github.farhanreninda.dashtconnect.BuildConfig.RECEIVER_BLUETOOTH_ADDRESS,
                 videoSize = videoSize,
                 onWifi = { ssid, passphrase -> if (current == attempt) emit(id, "connecting",
@@ -338,6 +352,9 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
     }
 
     private companion object {
+        val droppedSession = setOf("IPHONE_SESSION_ENDED", "IPHONE_TRANSPORT_FAILED", "IAP_TUNNEL_FAILED")
+        const val MAX_RECONNECTS = 3
+        const val RECONNECT_DELAY_MILLIS = 1_500L
         const val PERMISSIONS_REQUEST = 7330
         const val SETUP_REQUEST = 7331
     }

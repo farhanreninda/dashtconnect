@@ -74,7 +74,8 @@ class _ReceiverPageState extends State<ReceiverPage>
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
-      if (mounted) setState(() => _orientationReady = true);
+      if (!mounted) return await _releaseOrientation();
+      setState(() => _orientationReady = true);
     } catch (_) {
       if (mounted) {
         setState(
@@ -312,6 +313,13 @@ class _ReceiverPageState extends State<ReceiverPage>
     }
   }
 
+  // With auto-rotate off, Samsung keeps the last landscape rotation after the app
+  // returns from background unless portrait is requested before unlocking.
+  static Future<void> _releaseOrientation() =>
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+          .then((_) => SystemChrome.setPreferredOrientations([]))
+          .catchError((Object _) {});
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -319,9 +327,7 @@ class _ReceiverPageState extends State<ReceiverPage>
     if (_viewId case final int id) {
       unawaited(widget.receiver.stop(id).catchError((Object _) {}));
     }
-    unawaited(
-      SystemChrome.setPreferredOrientations([]).catchError((Object _) {}),
-    );
+    unawaited(_releaseOrientation());
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     super.dispose();
   }

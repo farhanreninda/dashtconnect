@@ -167,7 +167,16 @@ ThemeData buildAppTheme(Brightness brightness) {
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      // Follow the app theme instead of Material's inverted snackbar.
+      backgroundColor: scheme.surfaceContainerHigh,
+      contentTextStyle: base.textTheme.bodyMedium?.copyWith(
+        color: scheme.onSurface,
+      ),
+      actionTextColor: scheme.primary,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
     ),
   );
 }
