@@ -10,6 +10,10 @@ plugins {
 val receiverLocalProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
 }
+// Release signing lives outside Git: android/key.properties points at the keystore.
+val releaseSigning = Properties().apply {
+    rootProject.file("key.properties").takeIf { it.isFile }?.inputStream()?.use { load(it) }
+}
 val authAssetsDirectory = providers.environmentVariable("DASHTCONNECT_AUTH_ASSETS_DIR")
     .orElse(providers.provider { receiverLocalProperties.getProperty("dashtconnect.authAssetsDir") })
 val receiverBluetoothAddress = providers.environmentVariable("DASHTCONNECT_BLUETOOTH_ADDRESS")
@@ -37,6 +41,12 @@ val validateReceiverAuthentication by tasks.registering {
             it.relativeTo(directory).invariantSeparatorsPath !in expected
         }
         check(unexpected.isEmpty()) { "Direktori autentikasi hanya boleh berisi dua aset receiver; jangan sertakan file atau kredensial lain." }
+    }
+}
+
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    doFirst {
+        if (releaseSigning.isEmpty()) throw GradleException("Isi android/key.properties sebelum membuat APK release.")
     }
 }
 
@@ -68,6 +78,24 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        if (releaseSigning.isNotEmpty()) create("release") {
+            storeFile = file(releaseSigning.getProperty("storeFile"))
+            storePassword = releaseSigning.getProperty("storePassword")
+            keyAlias = releaseSigning.getProperty("keyAlias")
+            keyPassword = releaseSigning.getProperty("keyPassword")
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.findByName("release")
+            // The CarPlay core has never been verified under R8; keep release code unshrunk.
+            isMinifyEnabled = false
+            isShrinkResources = false
+        }
     }
 
     authAssetsDirectory.orNull?.let {

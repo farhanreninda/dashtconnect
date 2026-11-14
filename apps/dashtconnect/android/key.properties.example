@@ -1,0 +1,5 @@
+# Salin menjadi key.properties (tidak masuk Git) lalu isi sesuai keystore Anda.
+storeFile=D:/han/My Project/DashTConnect/.local-tools/dashtconnect-release.jks
+storePassword=dashtconnect
+keyAlias=dashtconnect
+keyPassword=dashtconnect
