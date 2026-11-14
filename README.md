@@ -1,45 +1,35 @@
 # DashTConnect
 
-DashTConnect dikembangkan sebagai aplikasi Android mandiri untuk menerima sesi iPhone dan meneruskannya ke layar mobil melalui T-Link. CarPlay memakai koneksi lokal ke iPhone, sedangkan Wi-Fi berinternet atau data seluler Android boleh tetap aktif.
+DashTConnect memiliki dua mode koneksi dengan kebutuhan perangkat yang berbeda.
 
-## Beranda
+## Apple CarPlay
 
-Tombol Mulai receiver membuka persiapan sambungan dan mencoba iPhone terakhir yang berhasil terhubung, atau satu-satunya ponsel yang sudah dipasangkan. Bila ada beberapa perangkat tanpa riwayat, pengguna memilih iPhone. Aplikasi meminta izin serta menampilkan dialog Bluetooth atau panel Wi-Fi jika perlu; pemasangan pertama tetap disetujui melalui pengaturan Bluetooth. Aplikasi memeriksa izin perangkat sekitar, Bluetooth, daftar iPhone yang sudah dipasangkan, jaringan Android dan kesiapan autentikasi aksesori. Beranda berfokus pada koneksi iPhone; tutorial dan pengecekan T-Link tersedia di tab Panduan.
+Receiver CarPlay bawaan menerima gambar, audio, dan kontrol sentuh dari iPhone melalui Bluetooth serta Wi-Fi lokal. Android meneruskan tampilan ke head unit melalui T-Link. Mode ini memerlukan iPhone, Android, dan HU T-Link; protokol receiver existing dipertahankan.
 
-## Receiver iPhone
+Mulai receiver menyiapkan izin dan panel sistem bila Bluetooth/Wi-Fi belum aktif, lalu mencoba iPhone terakhir yang berhasil tersambung atau satu-satunya ponsel yang dipasangkan. Jika pilihan belum jelas, pengguna memilih perangkat. Pairing awal dan persetujuan sistem tetap dilakukan pengguna. Wi-Fi internet Android boleh tetap aktif.
 
-Mesin receiver eksperimental berada di dalam DashTConnect. Bluetooth menyiapkan sesi dan Wi-Fi lokal membawa gambar serta audio dari iPhone. Status terhubung memerlukan sesi runtime dan gambar yang benar-benar dirender. Pengguna dapat menghentikan receiver; sesi juga dihentikan saat aplikasi masuk ke background. Internet Android tidak lagi menghalangi start atau menghentikan sesi.
+CarPlay memakai layar penuh dengan kontrol mengambang yang dapat digeser ke tepi. Kontrol kembali setelah sepuluh detik tanpa interaksi. Mode redup serta uji gambar/sentuhan T-Link tetap tersedia. Status terhubung memerlukan runtime iAP2 dan frame yang benar-benar dirender.
 
-Saat tersambung, CarPlay memakai layar penuh dengan rasio yang mengikuti layar Android. Pintasan di kiri bawah menyediakan redup/pulihkan kecerahan dan kontrol untuk menghentikan sesi. Tombol dapat digeser agar tidak menutupi kontrol CarPlay, lalu kembali ke posisi awal setelah sepuluh detik tanpa interaksi.
+## Android Auto
 
-Bantuan Wi-Fi pada layar koneksi menampilkan nama jaringan sementara dan menyediakan tombol untuk melihat sandi jika iPhone belum bergabung otomatis. Sandi tidak disimpan dan dihapus dari tampilan setelah percobaan berakhir.
+Targetnya satu HP Android yang menjalankan sumber Android Auto dan receiver di dalam DashTConnect, lalu meneruskan tampilan ke HU melalui T-Link. Tidak memakai HP kedua atau aplikasi receiver eksternal. HU tetap T-Link, sama seperti jalur CarPlay.
 
-## Panduan awal
+Receiver Android Auto internal **belum terintegrasi** pada versi 0.8.2+42. Yang tersedia adalah pemilihan mode, pemeriksaan layanan Android Auto, akses pengaturan, dan panduan sesuai status tersebut. Belum ada sesi Android Auto yang bisa dimulai. USB atau layanan aktif tidak ditampilkan sebagai koneksi berhasil.
 
-Empat langkah membantu mengenali alur koneksi, menyiapkan Android, memeriksa tampilan T-Link dan menghubungkan iPhone tanpa memutus Wi-Fi secara manual. Panduan muncul saat pertama kali dibuka, dapat dilewati dan bisa diulang melalui menu Panduan. Tombol Wi-Fi dan Bluetooth membuka pengaturan Android langsung dari menu ini.
+Audit self-mode menemukan pendekatan receiver lokal, tetapi penerimaan video/audio/input dan kompatibilitas dengan versi Android Auto pada HP masih memerlukan integrasi serta pengujian. T-Link hanya meneruskan tampilan/input; bukan pengganti mesin protokol Android Auto.
 
-## Uji tampilan dan sentuhan
+## Pilihan mode dan panduan
 
-Halaman uji layar penuh menyediakan empat target berwarna dengan penghitung sentuhan. Pengguna dapat membandingkan gambar HP dan head unit, menekan target melalui layar mobil lalu mengulang penghitung untuk percobaan berikutnya.
+Setelah splash, aplikasi membuka Beranda dengan diagram CarPlay, akses cepat ke panduan/uji T-Link, serta ringkasan kontrol mengambang dan mode redup. Pilih mode koneksi membuka Apple CarPlay atau Android Auto; pilihan terakhir ditandai. Tidak ada pintasan pilihan mode ganda di Pengaturan atau tombol kanan atas. Tab Panduan langsung menampilkan isi CarPlay dan dapat berganti ke topik Android Auto tanpa memilih atau memulai transport.
 
-## Pengaturan dan informasi
+## Tampilan dan informasi
 
-Pengaturan mengumpulkan pilihan tampilan, mode redup, informasi perangkat dan Tentang DashTConnect. Informasi perangkat dibaca langsung dari Android yang digunakan, mencakup model, versi sistem, jaringan aktif, suhu baterai dan sambungan daya. Halaman ini hanya menampilkan informasi, tanpa formulir isian iPhone atau head unit.
+Tema sistem, terang, dan gelap tetap tersimpan. Navigasi Beranda, Panduan, dan Pengaturan memakai indikator aktif serta rail pada landscape. Layout mengikuti ruang konten dan pembesaran teks. Animasi logo sekali saat memasuki halaman menghormati pengurangan animasi.
 
-## Tema terang dan gelap
+Pengaturan memuat preferensi tampilan, mode redup, informasi perangkat, dan Tentang aplikasi. Informasi model, Android, jaringan, suhu baterai, dan daya dibaca dari perangkat; informasi teknis tidak memenuhi beranda. Versi aplikasi saat ini 0.8.2+42.
 
-Tampilan menggunakan warna utama biru, panel terang/slate dan tipografi yang konsisten. Halaman Tampilan menyediakan pilihan Sesuai perangkat, Terang dan Gelap yang tersimpan saat aplikasi dibuka kembali. Navigasi Beranda, Panduan dan Pengaturan berpindah ke sisi layar pada landscape. Halaman tetap dapat digulir dan mendukung pembesaran teks.
+## Rujukan fitur
 
-## Mode redup
+[Panduan dua mode](docs/dual-mode.md) · [Audit Android Auto](docs/android-auto.md) · [Receiver CarPlay](docs/receiver.md) · [Arsitektur](docs/architecture.md) · [Validasi](docs/validation-flutter.md).
 
-Menurunkan kecerahan jendela DashTConnect menjadi 3% dan menjaga layar tetap menyala selama aplikasi berada di depan. Kecerahan dapat dipulihkan melalui kontrol yang tersedia. Kelanjutan gambar T-Link dan pengaruhnya terhadap suhu masih memerlukan pengujian.
-
-## Tentang DashTConnect
-
-Halaman Tentang menampilkan identitas aplikasi, versi terpasang, tujuan pengembangan dan status receiver secara ringkas.
-
-## Kemampuan saat ini
-
-Gambar, sentuhan dan suara musik CarPlay telah berhasil diuji dari iPhone 11 ke Samsung A04s melalui Wi-Fi lokal 2,4 GHz. Android memakai koneksi lokal dengan data seluler mati; internet tetap dari iPhone. Build uji pribadi memakai autentikasi eksperimen. Receiver memerlukan izin mikrofon agar iPhone mengenali jalur audio dengan lengkap. Siri, panggilan, output T-Link, kestabilan jangka panjang, layar sepenuhnya mati dan pengaruhnya terhadap panas masih memerlukan pengujian perangkat.
-
-Versi 0.7.5 juga telah diuji menghubungkan iPhone otomatis setelah persetujuan menyalakan Bluetooth, sementara Wi-Fi berinternet Samsung tetap tersambung. Pemasangan awal perangkat dan pengaktifan radio tetap mengikuti persetujuan sistem Android.
+Pengujian CarPlay terdahulu membuktikan gambar, sentuhan, dan musik pada pasangan perangkat pemilik. Itu tidak menjamin semua HU, sesi panjang, Siri, panggilan, suhu/daya, atau kompatibilitas Android Auto. Status dan bukti setiap versi dicatat terpisah dalam dokumentasi validasi.

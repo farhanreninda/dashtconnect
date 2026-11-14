@@ -88,4 +88,5 @@ flutter {
 
 dependencies {
     implementation(project(":receiver"))
+    implementation(project(":androidauto"))
 }

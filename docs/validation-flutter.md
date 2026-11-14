@@ -573,3 +573,64 @@ Padding header/isi Detail teknis disamakan menjadi 20. Waktu pembacaan terakhir 
 - PASS perangkat fisik dengan lock: dumpsys wifi memuat WifiLock DashTConnect:receiver type=4 selama sesi; CarPlay connected dan Wi-Fi INTERNET + VALIDATED bersamaan. Setelah keluar, lock hilang setelah cleanup sesi asinkron. Receiver dibuka kembali untuk pemakaian pengguna.
 - Pengulangan 18 swipe setelah lock: empat jendela mencatat 32,4 / 54,7 / 54,1 / 36,6 fps tampil, touch2frame rata-rata 38 / 34 / 25 / 38 ms, decoder p90 9–11 ms, tanpa recovery decoder. Max gap masih 160–290 ms. Bukti lokal: .local-tools/qa/smooth-wifi-repeat.log; bukan aset publik.
 - Batas: touch2frame mengukur kirim HID ke frame diterima berikutnya, bukan latensi sentuhan sampai piksel yang terbukti terkait. Jendela memuat jeda antar-swipe, bukan benchmark fps kontinu. Sampel sebelum/sesudah diambil pada waktu berbeda sehingga tidak mengisolasi perubahan kondisi radio. Audio, head unit T-Link, suhu/daya dan sesi panjang belum diuji ulang. Tidak menyatakan bebas lag atau 60 fps stabil.
+
+## 2026-10-30: dua mode dan redesign 0.8.0+40
+
+### Cakupan dan status
+
+Selector, beranda/panduan terpisah, preferensi lastMode schema 1, header/logo, navigasi, tema/panel, Pengaturan dan Tentang diperbarui. Android Auto hanya memeriksa layanan serta USB dan membuka pengaturan. Targetnya sumber serta receiver internal pada satu Android, kemudian HU T-Link. Mesin protokol Android Auto **belum terintegrasi**. Tidak ada pengujian sesi Android Auto, connected palsu, aplikasi receiver eksternal atau syarat mengganti HU ke native Android Auto. Audit source, lisensi dan pekerjaan tersisa ada di [android-auto.md](android-auto.md).
+
+Protokol dan source modul receiver CarPlay tidak berubah (`git diff --numstat -- apps/dashtconnect/android/receiver` kosong). MainActivity hanya menambahkan adapter kesiapan Android Auto beserta lifecycle-nya. Tidak menambahkan dependency AndroidX Car App.
+
+### Pengujian otomatis dan build
+
+- PASS: `flutter analyze` tanpa masalah. Suite penuh 110 tes Flutter lulus; setelah perapian dua kalimat panduan dan metadata, 10 tes dual-mode dijalankan ulang dan lulus.
+- PASS: 33 tes JVM receiver, 0 gagal/error/skip. Gradle `:receiver:testDebugUnitTest --offline --no-daemon` berhasil; hasil task up-to-date memakai output tes valid dari source yang tidak berubah.
+- PASS: payload native yang rusak ditolak; paket hilang/nonaktif/aktif dibedakan; USB dan versi Android tidak dianggap sesi. Error readiness, error Settings, retry, event lebih baru dari refresh lama, disposal, lazy tab dan pergantian mode tercakup.
+- PASS: selector/beranda/panduan/Pengaturan kedua mode pada 320x640 dan 800x360, teks 100%/200%. Suite existing juga mencakup landscape 640x320, terang/gelap, keyboard, reduced motion, data lama, error, serta seluruh langkah tutorial CarPlay.
+- PASS: build debug arm64. APK terakhir 101064513 byte, SHA-256 `631fa8755116a1ea62c1b44b0cb2b8abd5395eefad189728c28ceb4c2dc86965`. Peringatan kompatibilitas Built-in Kotlin dari plugin Flutter/Gradle tetap ada; tidak menghalangi build. Tidak mengganti AGP/framework untuk pekerjaan ini.
+- PASS: install -r pada Samsung SM-A047F Android 14. Hash aset autentikasi cocok dengan input lokal, tanpa mencetak isi aset; research.json byte-identik sebelum/sesudah instalasi. File APK dan aset privat tidak dimasukkan Git.
+
+### Pemeriksaan Samsung dan CarPlay
+
+- PASS: kedua mode, ganti dari header dan baris Mode koneksi, tab navigasi, Settings Android Auto dan Periksa ulang. Paket Android Auto aktif versi 17.9 terbaca; UI tetap menyatakan receiver internal belum tersedia.
+- PASS: tema terang/gelap, redup on/off, halaman informasi perangkat, detail teknis, refresh, Tentang, panduan terpisah, akses uji T-Link, penghitung sentuhan dari HP, dan empat langkah tutorial CarPlay. Tes sentuhan HP ini tidak membuktikan input dari HU.
+- PASS CarPlay: panel sistem mengaktifkan Bluetooth dengan persetujuan yang sudah diotorisasi. Percobaan pertama gagal pada BluetoothSocket dengan IOException dan UI memberi coba ulang. Percobaan ulang menerima identification/authentication iAP2, lalu frame CarPlay nyata tampil.
+- PASS: saat CarPlay terhubung, Current Networks masih mencatat Wi-Fi INTERNET + VALIDATED; last_phone tetap tersimpan. Hentikan receiver dari kontrol mengambang berhasil. Hubungkan ulang berhasil melalui Wi-Fi lokal. Membawa aplikasi ke background menghentikan sesi dan tidak mempertahankan status connected saat kembali.
+- Verifikasi runtime dilakukan sebelum perapian akhir dua kalimat panduan Android Auto/metadata; source receiver dan alur CarPlay sama pada APK terakhir. Instalasi terakhir kembali diverifikasi tanpa kehilangan data.
+- Tema awal gelap dan pengaturan rotasi dipulihkan; inventory, records dan tutorial tetap sama. lastMode berubah sesuai pilihan yang diuji. Bluetooth dibiarkan aktif untuk penggunaan receiver, tidak menghapus pairing atau memutus Wi-Fi internet.
+- Screenshot UI asli: [galeri dual-mode](assets/dual-mode/README.md). Bukti runtime CarPlay lokal: `.local-tools/qa/auto-receiver-connected.png`, tidak dipublikasikan karena dapat berisi konten iPhone pribadi.
+
+### Gate UI antislop
+
+- Hard gate PASS untuk UI yang diubah: build dan interaksi di atas berjalan, tidak ada data statistik/testimoni buatan, status berasal dari pemeriksaan aktual, reflow dan tema lulus, aksi memiliki callback nyata. Tes app_theme memeriksa kontras teks/aksi/panel; aksen teal selector juga diukur 9,89:1 pada gelap dan 6,58:1 pada terang.
+- Purpose gate PASS: ikon ponsel menjelaskan mode, panah menandai navigasi, logo memakai identitas existing, tanpa ilustrasi/gradient/glow baru. Font mengikuti referensi pemilik; alasan arah visual ada di DESIGN.md.
+- Liveliness PASS: ENERGY 1 / RHYTHM 2 / MOTION 1 dipertahankan. Fokus pada pemilihan mode atau aksi receiver, pemisahan konten dan indikator navigasi; fade logo 180 ms sekali dengan reduced motion.
+- Craftsmanship PASS untuk cakupan UI: data lama, empty/error/loading, fokus keyboard, tema dan skala teks diuji. Android Auto yang belum berfungsi ditulis jelas; tidak dipresentasikan sebagai fitur receiver selesai.
+
+### Batas pengujian
+
+Tidak mengklaim peningkatan fps/latensi dari redesign. Optimasi terbatas pada tab lazy/retained, pembatalan subscription saat tidak terlihat, receiver USB mengikuti foreground, tanpa polling/animasi loop. Belum ada profiling performa baru atau pengukuran audio pada versi ini. HU T-Link, audio/Siri/panggilan, kondisi izin ditolak pada perangkat fisik, suhu/daya dan sesi panjang belum diuji ulang. Receiver Android Auto internal beserta self-mode, video/audio/input dan otomatisasinya tetap pekerjaan yang belum selesai.
+
+Tidak ada commit/push, reset data, instalasi receiver eksternal atau perubahan source website pada pekerjaan ini. README website diberi konteks versi galeri lama.
+
+## 2026-10-30: Beranda dan navbar 0.8.1+41
+
+- Koreksi pemilik: aplikasi membuka Beranda umum. Pilih mode koneksi pada isi Beranda membuka selector Apple CarPlay/Android Auto. Tidak ada action mode di kanan atas, termasuk tutorial pertama CarPlay. Pemilihan bisa dibatalkan; Back dari beranda mode kembali ke Beranda umum. Panduan/Pengaturan tetap tersedia sebelum mode dipilih tanpa menjalankan transport.
+- Navbar portrait dan rail landscape memakai border utuh radius 20 dp dan pilihan aktif radius 14 dp dengan primaryContainer. Garis bawah/sisi parsial dihapus; fokus memakai border seragam agar tidak berganti bentuk saat animasi. Semantics, keyboard dan reduced motion dipertahankan.
+- PASS: 111 tes Flutter penuh, analisis tanpa masalah. Setelah menambah pemeriksaan Panduan/Pengaturan tanpa mode, 11 tes dual-mode dijalankan ulang dan lulus. Termasuk pembatalan selector, back, penyimpanan terakhir, kegagalan save, tab/lifecycle, 320x640/800x360 dan teks 100%/200%.
+- PASS: build debug arm64 dan install -r di Samsung Android 14. Versi 0.8.1+41, APK 84596177 byte, SHA-256 `18330c5f92bf91bba6f83afd2f87cc5ba12d9cfad47b3a344eea328f4bd5b894`. Hash aset autentikasi sesuai input lokal; research.json byte-identik setelah instalasi. Peringatan kompatibilitas Built-in Kotlin plugin masih ada, build tetap berhasil.
+- PASS perangkat: Beranda -> Pilih mode koneksi -> Android Auto, kembali ke Beranda, batal memilih, lalu masuk Apple CarPlay. Android Auto menampilkan receiver internal belum tersedia. Navbar dan header diperiksa pada screenshot aktual portrait/landscape; terang/gelap diperiksa melalui Pengaturan. Tema gelap dan rotasi portrait dipulihkan.
+- Gate UI PASS: navigasi dan aksi nyata, reflow/keyboard/reduced motion/tema diuji, status tidak dibuat-buat. Arah visual mengikuti koreksi pemilik di DESIGN.md; ENERGY 1 / RHYTHM 2 / MOTION 1 dipertahankan. Kontras memakai pasangan warna tema yang telah diuji pada app_theme_test. Bukti visual: [galeri Beranda terbaru](assets/home-navigation/README.md).
+- Batas: perubahan ini mengatur UI/flow, tidak mengintegrasikan mesin receiver Android Auto. Tidak ada sesi Android Auto untuk dicoba. Source/protokol CarPlay dan adapter native tidak diubah pada revisi ini; koneksi CarPlay/HU/audio tidak diuji ulang pada 0.8.1. Tidak ada commit/push atau penghapusan data.
+
+## 2026-10-30: isi Beranda, Panduan langsung dan jarak navbar 0.8.2+42
+
+- Navbar portrait dipisahkan dari area sistem dengan padding bawah 16 dp di dalam SafeArea, sisi 16 dp dan atas 8 dp. Bentuk membulat, fokus dan rail landscape dipertahankan.
+- Beranda umum menampilkan diagram existing iPhone/Android/HU, akses cepat Panduan koneksi dan Uji tampilan T-Link, serta ringkasan gambar/audio, kontrol mengambang dan mode redup. Konten tambahan menjelaskan fungsi yang sudah ada; tidak ada statistik/status buatan atau animasi dekoratif baru.
+- Panduan langsung berisi CarPlay, atau topik mode aktif. ChoiceChip mengubah _guideMode untuk membaca Android Auto/CarPlay tanpa selector koneksi. Tidak mengubah lastMode, menyiapkan transport, atau membaca readiness AA hanya untuk membuka panduan. Pintasan pilihan mode di Pengaturan dihapus karena menduplikasi Beranda.
+- PASS: suite penuh 112 tes Flutter. Analisis tanpa masalah. Setelah memperjelas dua kalimat petunjuk pemeriksaan AA, 12 tes dual-mode dijalankan ulang dan lulus. Cakupan baru: pintasan Beranda ke guide/probe tanpa memilih transport, kedua topik pada 320x640 dan 800x360 dengan teks 100%/200%, serta penghapusan baris mode di Pengaturan. Helper tes rail menggulir ke Beranda sebelum mengetuk pada teks besar.
+- PASS: build debug arm64 dan install -r pada Samsung. APK terakhir 99732348 byte, SHA-256 `af01d0bbf2097f1d20d572d6eb4e8adc04906eca776abbb95cd2294a9f4c9910`. Aset autentikasi sesuai input lokal dan research.json byte-identik sebelum/sesudah instalasi. Peringatan kompatibilitas Built-in Kotlin plugin masih ada; build tidak terhalang.
+- PASS perangkat: akses cepat Panduan membuka isi CarPlay langsung, pergantian topik AA tanpa selector, Pengaturan tanpa baris mode, pintasan uji T-Link, tema terang/gelap dan rotasi. Data inventory/records/tutorial dipertahankan; tema gelap dan portrait dipulihkan. Bukti: [galeri UI 0.8.2](assets/home-content/README.md).
+- Gate UI PASS: tindakan yang ditambahkan membuka tujuan nyata, status AA tetap jujur, reflow/keyboard/tema dan kontras tema tercakup suite. Diagram/logo/font memakai identitas existing; alasan kepadatan serta jarak mengikuti koreksi pemilik dalam DESIGN.md. ENERGY 1 / RHYTHM 2 / MOTION 1 dipertahankan. Tidak ada grafik, statistik, testimonial atau indikator koneksi rekaan.
+- Batas: revisi ini khusus UI/flow dan teks. Engine receiver CarPlay/AA, permission dan koneksi tidak diubah; HU/audio/sesi CarPlay tidak diuji ulang. Android Auto internal masih belum diintegrasikan. Tidak ada commit/push atau penghapusan data.

@@ -34,9 +34,10 @@ class AppNavigation extends StatelessWidget {
     final navigation = Material(
       color: scheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: scheme.outlineVariant),
       ),
+      clipBehavior: Clip.antiAlias,
       child: rail
           ? SizedBox(
               width: MediaQuery.textScalerOf(context).scale(12) > 16 ? 112 : 96,
@@ -65,7 +66,7 @@ class AppNavigation extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: navigation,
       ),
     );
@@ -107,7 +108,7 @@ class _NavigationItemState extends State<_NavigationItem> {
             : const Duration(milliseconds: 160),
         decoration: BoxDecoration(
           color: widget.selected ? scheme.primaryContainer : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: _focused ? scheme.primary : Colors.transparent,
             width: 2,

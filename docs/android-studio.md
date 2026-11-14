@@ -1,5 +1,15 @@
 # Menjalankan DashTConnect dari Android Studio
 
+## Dua mode 0.8.0+40
+
+Project tetap Flutter dengan adapter Kotlin dan library receiver. Tidak ada migrasi framework/AGP atau dependency AndroidX Car App baru. Native AndroidAutoChannel berada pada app/androidauto untuk membaca kesiapan paket dan USB; receiver CarPlay tetap pada app/receiver dan modul receiver.
+
+Buka Beranda, tekan Pilih mode koneksi lalu pilih mode. Target Android Auto memakai satu HP dan receiver internal menuju HU T-Link; engine belum terintegrasi, sehingga build ini belum bisa menjalankan sesi Android Auto. Langkah aktual ada pada [panduan dua mode](dual-mode.md). Build memakai SDK/Flutter/local.properties yang sudah tersedia. Jangan memasukkan aset autentikasi atau APK ke Git.
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 Repo berisi dokumentasi dan satu aplikasi Flutter. Buka folder aplikasi yang mempunyai `pubspec.yaml` agar Android Studio mengenalinya sebagai proyek Flutter.
 
 ## Pengaturan pertama

@@ -1,5 +1,15 @@
 # Referensi teknis receiver mandiri
 
+## Status terkini 30 Oktober 2026
+
+Aplikasi sekarang memiliki pilihan Apple CarPlay dan Android Auto. Receiver CarPlay existing dipertahankan, termasuk dukungan internet Android yang sudah diizinkan sejak 0.7.4. Pernyataan offline-only atau belum ada autentikasi pada arsip di bawah bukan kondisi kode terkini.
+
+Target Android Auto adalah sumber dan receiver internal pada satu HP, lalu tampilan/input melalui HU T-Link. API status tidak menyediakan mesin receiver. Referensi self-mode sudah diaudit, tetapi integrasi protokol, lisensi, renderer/audio/input dan persiapan Head Unit Server belum selesai. Build hanya menyediakan pemeriksaan layanan dan panduan; tidak ada sesi Android Auto. Audit serta batas ada di [android-auto.md](android-auto.md). Tidak menganggap screen mirroring sebagai Android Auto atau mensyaratkan HU native Android Auto untuk target ini.
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 ## Pembaruan uji pribadi 23 Oktober 2026
 
 Hasil terbaru 0.6.5: gambar, sentuhan dan suara musik sudah berfungsi pada Samsung. Setelah RECORD_AUDIO diberikan serta masukan mikrofon diaktifkan pada penawaran dan mesin media, iPhone membuka stream AAC-LC 48 kHz stereo; native memulai playback dan pemilik mengonfirmasi suara keluar dari Samsung. Perubahan sebelumnya pada buffered AAC dan identitas Bluetooth saja belum menyelesaikan audio. Ini mendukung dugaan bahwa penawaran masukan mikrofon diperlukan pada pasangan ini; bukan bukti persyaratan universal semua iPhone. Siri, panggilan dan penerusan ke T-Link belum diuji.

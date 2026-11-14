@@ -1,0 +1,108 @@
+{
+  "appVersion": "0.8.0+40",
+  "capturedOn": "2026-10-30",
+  "device": "Samsung SM-A047F",
+  "android": "14",
+  "source": "ADB screencap, original pixels",
+  "androidAutoReceiverImplemented": false,
+  "files": [
+    {
+      "file": "01-mode-selector-dark-portrait.png",
+      "width": 720,
+      "height": 1600,
+      "sha256": "872d0bce76cc5b34bedb16661cf5457c2c0dfca5db53df5d7219d2225e450938",
+      "theme": "dark"
+    },
+    {
+      "file": "02-android-auto-dark-portrait.png",
+      "width": 720,
+      "height": 1600,
+      "sha256": "7b0cd155188b1872f9cc0bd40f8fb7131ea9c33855e2a6092fb926b59b0e7b9c",
+      "theme": "dark"
+    },
+    {
+      "file": "04-mode-selector-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "842c4ad043091ec1b2bd2efcf88a96e119cb71af3613515788a2b90f54fb9a8b",
+      "theme": "dark"
+    },
+    {
+      "file": "05-android-auto-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "5a2cbedd375f9cd98f411c2600c5c9acd3313141d9a052d50b8163ba85ba740c",
+      "theme": "dark"
+    },
+    {
+      "file": "06-android-auto-guide-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "b807eec8a7e732c7d0ad6b14c8cf457a0551a6d13085ef4389a531363cef518a",
+      "theme": "dark"
+    },
+    {
+      "file": "07-settings-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "340444e35bbc6312ee0fb90d5775deb70594777e44184d19f854bb3c7caaaf1a",
+      "theme": "dark"
+    },
+    {
+      "file": "08-mode-selector-light-portrait.png",
+      "width": 720,
+      "height": 1600,
+      "sha256": "04d296ad21f1fd2b577eb3b0b0b4316a732c446bc59e1cfc1670276e3e2f1645",
+      "theme": "light"
+    },
+    {
+      "file": "09-mode-selector-light-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "ea6688cdedec81014026c36ed9300ec6cbd3ee6b5069204fcc4d47c65543ef21",
+      "theme": "light"
+    },
+    {
+      "file": "10-carplay-light-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "6e6938bbf64de2dbe6f7802eb0e306052bc4b65bc8ec951240d0d27d93571387",
+      "theme": "light"
+    },
+    {
+      "file": "11-carplay-receiver-light-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "7115c30ddd9585cc0ddf8e8fd4f861b8ff939722f6a98c3b092a2436d7a56641",
+      "theme": "light"
+    },
+    {
+      "file": "12-about-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "ac7f50022b37131fc6ca22ac79edea489624ae09fc99e78c4a640cfc91384fd0",
+      "theme": "dark"
+    },
+    {
+      "file": "13-device-dark-portrait.png",
+      "width": 720,
+      "height": 1600,
+      "sha256": "f1ff67718d969ad51b8d48d280224812236568dbee8a3400910bd6a942fd8d6e",
+      "theme": "dark"
+    },
+    {
+      "file": "14-carplay-guide-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "f38d6d65047eaa9ca00e772a0140f2aefd3891262ee10833de3f87a1bf51fad2",
+      "theme": "dark"
+    },
+    {
+      "file": "15-carplay-home-dark-landscape.png",
+      "width": 1600,
+      "height": 720,
+      "sha256": "d28576e913874d334ee6b6bb0b5aa05753b95365372212545371f40838f0c55e",
+      "theme": "dark"
+    }
+  ]
+}

@@ -19,3 +19,8 @@ Nomor seri pada foto tidak disalin. Foto asli tidak dimasukkan ke repo. Versi ap
 Untuk buku eksperimen aplikasi, isi kolom Firmware head unit dengan `Application 1.1.0005.4400; M-Toyota 0.0.2`. Biarkan model HU/versi T-Link yang belum diketahui sebagai belum diketahui. Isi ini dilakukan pada perangkat pemilik, tidak ditanam sebagai konfigurasi bawaan app.
 
 Berikutnya: identifikasi nama/versi aplikasi pendamping T-Link, model HU dan kabel, lalu lakukan EXP-03 saat parkir. Uji gambar, sentuhan dari HU dan mode redup secara terpisah. Hasil saat ini masih BELUM DIUJI untuk proyeksi T-Link.
+
+
+## Pembaruan 30 Oktober 2026
+
+Pemilik menyatakan HU hanya memiliki T-Link, tidak ada menu Android Auto. Ini keterangan pemilik, bukan identifikasi firmware/protokol dari vendor. Target Android Auto tetap HU ini: sumber dan receiver internal pada satu HP, kemudian tampilan/input lewat T-Link. Tidak mensyaratkan HU native Android Auto atau aplikasi receiver eksternal. Engine lokal belum terintegrasi; sesi, gambar, audio, input dan reconnect Android Auto pada HU ini belum diuji. Foto CarPlay existing tidak membuktikan Android Auto berhasil.

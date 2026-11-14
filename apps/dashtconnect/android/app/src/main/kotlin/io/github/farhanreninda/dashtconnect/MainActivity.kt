@@ -5,13 +5,17 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.github.farhanreninda.dashtconnect.platform.DeviceChannel
 import io.github.farhanreninda.dashtconnect.receiver.ReceiverChannel
+import io.github.farhanreninda.dashtconnect.androidauto.AndroidAutoChannel
 
 class MainActivity : FlutterActivity() {
     private var deviceChannel: DeviceChannel? = null
     private var receiverChannel: ReceiverChannel? = null
+    private var androidAutoChannel: AndroidAutoChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        androidAutoChannel?.dispose()
+        androidAutoChannel = AndroidAutoChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         deviceChannel?.dispose()
         deviceChannel = DeviceChannel(this, flutterEngine.dartExecutor.binaryMessenger)
         receiverChannel?.dispose()
@@ -23,16 +27,20 @@ class MainActivity : FlutterActivity() {
     override fun onResume() {
         super.onResume()
         deviceChannel?.resume()
+        androidAutoChannel?.resume()
     }
 
     override fun onPause() {
         deviceChannel?.pause()
+        androidAutoChannel?.pause()
         receiverChannel?.pause()
         super.onPause()
     }
 
     override fun onDestroy() {
         deviceChannel?.dispose()
+        androidAutoChannel?.dispose()
+        androidAutoChannel = null
         receiverChannel?.dispose()
         deviceChannel = null
         receiverChannel = null

@@ -130,7 +130,7 @@ class AppPanel extends StatelessWidget {
           ? scheme.surfaceContainerLow
           : scheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(color: scheme.outlineVariant),
       ),
       child: Padding(padding: EdgeInsets.all(padding), child: child),
@@ -193,7 +193,7 @@ class _AppActionTileState extends State<AppActionTile> {
     return Material(
       color: theme.colorScheme.surfaceContainerLowest,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         side: _focused
             ? BorderSide(color: theme.colorScheme.primary, width: 2)
             : BorderSide(color: theme.colorScheme.outlineVariant),
@@ -201,7 +201,7 @@ class _AppActionTileState extends State<AppActionTile> {
       child: InkWell(
         onTap: widget.onTap,
         onFocusChange: (value) => setState(() => _focused = value),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             minHeight:
@@ -298,7 +298,7 @@ class AppNotice extends StatelessWidget {
               : error
               ? scheme.errorContainer
               : scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: _warning
               ? Border.all(
                   color: dark

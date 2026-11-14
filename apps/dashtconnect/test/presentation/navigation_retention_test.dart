@@ -46,14 +46,17 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Detail teknis'));
       await tester.tap(find.text('Detail teknis'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('arm64-v8a, armeabi-v7a, armeabi'));
       expect(tester.takeException(), isNull);
       await tester.ensureVisible(find.text('Perbarui'));
       await tester.tap(find.text('Perbarui'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.textContaining('Diperbarui pukul'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -69,6 +72,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Fixture model'), findsOneWidget);
       expect(find.text('Fixture extension'), findsNothing);
       expect(find.text('Fixture network'), findsOneWidget);
@@ -76,11 +80,13 @@ void main() {
       await tester.ensureVisible(find.text('Detail teknis'));
       await tester.tap(find.text('Detail teknis'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Fixture extension'), findsOneWidget);
       device.model = 'Fixture another phone';
       await tester.ensureVisible(find.text('Perbarui'));
       await tester.tap(find.text('Perbarui'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Fixture model'), findsNothing);
       expect(find.text('Fixture another phone'), findsOneWidget);
       expect(find.textContaining('Diperbarui pukul'), findsOneWidget);
@@ -88,12 +94,14 @@ void main() {
       await tester.ensureVisible(find.text('Perbarui'));
       await tester.tap(find.text('Perbarui'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Fixture another phone'), findsOneWidget);
       expect(find.textContaining('Pembacaan perangkat gagal.'), findsOneWidget);
       device.failInfo = false;
       await tester.ensureVisible(find.text('Perbarui'));
       await tester.tap(find.text('Perbarui'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.textContaining('Pembacaan perangkat gagal.'), findsNothing);
       await tester.pumpWidget(const SizedBox());
     },
@@ -107,12 +115,14 @@ void main() {
       ..data = const Notebook(tutorialCompleted: true);
     await tester.pumpWidget(
       ResearchApp(
+        androidAuto: TestAndroidAutoGateway(),
         repository: store,
         device: device,
         receiver: TestReceiverGateway(),
       ),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(device.infoReads, 0);
     expect(find.text('Android ini'), findsNothing);
     expect(find.text('Layar', skipOffstage: false), findsNothing);
@@ -120,16 +130,21 @@ void main() {
     final theme = tester.widget<MaterialApp>(find.byType(MaterialApp)).theme;
     await tester.tap(find.text('Panduan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     final guide = tester.element(find.byKey(const PageStorageKey('guide')));
     await tester.tap(find.text('Pengaturan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.ensureVisible(find.text('Tampilan'));
     await tester.tap(find.text('Tampilan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Gelap'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.pageBack();
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(
       identical(
         theme,
@@ -139,6 +154,7 @@ void main() {
     );
     await tester.tap(find.text('Panduan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(
       identical(
         guide,
@@ -148,6 +164,7 @@ void main() {
     );
     await tester.tap(find.text('Beranda'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(
       identical(home, tester.element(find.byKey(const PageStorageKey('home')))),
       isTrue,
@@ -155,6 +172,7 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(device.infoReads, 0);
     expect(tester.hasRunningAnimations, isFalse);
     await tester.pumpWidget(const SizedBox());
@@ -187,9 +205,11 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(selected, 0);
         await tester.tap(find.text('Pengaturan'));
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(selected, 2);
         expect(tester.takeException(), isNull);
         expect(tester.hasRunningAnimations, isFalse);
@@ -224,9 +244,11 @@ void main() {
           reduced ? Duration.zero : const Duration(milliseconds: 160),
         );
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(find.text('Details'), findsOneWidget);
         await tester.pageBack();
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(find.text('Root'), findsOneWidget);
       },
     );

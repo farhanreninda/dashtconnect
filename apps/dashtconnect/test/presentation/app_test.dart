@@ -15,6 +15,7 @@ ResearchApp _app({
   required MemoryNotebookRepository repository,
   required TestDeviceGateway device,
 }) => ResearchApp(
+  androidAuto: TestAndroidAutoGateway(),
   repository: repository,
   device: device,
   receiver: TestReceiverGateway(),
@@ -29,6 +30,7 @@ void main() {
         _app(repository: _readyRepository(), device: bridge),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(bridge.infoReads, 0);
       expect(find.text('Mulai receiver'), findsOneWidget);
       expect(find.text('Uji tampilan'), findsNothing);
@@ -36,9 +38,11 @@ void main() {
       expect(find.text('Siapkan koneksi'), findsNothing);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Buka tutorial'));
       await tester.tap(find.text('Buka tutorial'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Kenali alur koneksi'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
@@ -52,19 +56,23 @@ void main() {
       _app(repository: _readyRepository(), device: bridge),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(find.text('Mulai receiver'), findsOneWidget);
     expect(bridge.infoReads, 0);
     await tester.tap(find.text('Pengaturan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.ensureVisible(find.text('Informasi perangkat'));
     await tester.tap(find.text('Informasi perangkat'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(bridge.infoReads, 1);
     expect(find.textContaining('Pembacaan perangkat gagal.'), findsOneWidget);
     bridge.failInfo = false;
     await tester.ensureVisible(find.text('Perbarui'));
     await tester.tap(find.text('Perbarui'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(bridge.infoReads, 2);
     await tester.scrollUntilVisible(
       find.text('Perangkat uji'),
@@ -81,12 +89,16 @@ void main() {
       _app(repository: _readyRepository(), device: bridge),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Panduan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.ensureVisible(find.text('Buka Wi-Fi'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Buka Wi-Fi'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(
       find.text('Pengaturan belum bisa dibuka. Coba lagi.'),
       findsOneWidget,
@@ -95,8 +107,10 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
     await tester.ensureVisible(find.text('Buka Wi-Fi'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Buka Wi-Fi'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(bridge.lastSettings, DeviceSettings.wifi);
     await tester.pumpWidget(const SizedBox());
   });
@@ -108,52 +122,66 @@ void main() {
       final bridge = TestDeviceGateway();
       await tester.pumpWidget(_app(repository: store, device: bridge));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Kenali alur koneksi'), findsOneWidget);
       expect(find.text('Langkah 1 dari 4'), findsOneWidget);
 
       await tester.ensureVisible(find.byKey(const Key('guide-next')));
       await tester.tap(find.byKey(const Key('guide-next')));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Buka Wi-Fi'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(bridge.lastSettings, DeviceSettings.wifi);
       await tester.tap(find.text('Buka Bluetooth'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(bridge.lastSettings, DeviceSettings.bluetooth);
       await tester.ensureVisible(find.byKey(const Key('guide-next')));
       await tester.tap(find.byKey(const Key('guide-next')));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Buka uji layar'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Target 1\n0 sentuhan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Target 1\n1 sentuhan'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Langkah 3 dari 4'), findsOneWidget);
       await tester.ensureVisible(find.byKey(const Key('guide-next')));
       await tester.tap(find.byKey(const Key('guide-next')));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Selesai'));
       await tester.tap(find.text('Selesai'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
 
       expect(store.data.tutorialCompleted, isTrue);
       expect(find.text('Beranda'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
       await tester.pumpWidget(_app(repository: store, device: bridge));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Kenali alur koneksi'), findsNothing);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.scrollUntilVisible(
         find.text('Buka tutorial'),
         160,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Buka tutorial'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Kenali alur koneksi'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     },
@@ -162,13 +190,16 @@ void main() {
   testWidgets(
     'skipping onboarding retains the guide on save failure and persists a retry',
     (tester) async {
-      final store = MemoryNotebookRepository()..failSave = true;
+      final store = MemoryNotebookRepository();
       final bridge = TestDeviceGateway();
       await tester.pumpWidget(_app(repository: store, device: bridge));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
+      store.failSave = true;
       await tester.ensureVisible(find.text('Nanti saja'));
       await tester.tap(find.text('Nanti saja'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
 
       expect(store.data.tutorialCompleted, isFalse);
       expect(find.text('Kenali alur koneksi'), findsOneWidget);
@@ -182,6 +213,7 @@ void main() {
       await tester.ensureVisible(find.text('Nanti saja'));
       await tester.tap(find.text('Nanti saja'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(store.data.tutorialCompleted, isTrue);
       expect(find.text('Beranda'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
@@ -201,48 +233,65 @@ void main() {
         _app(repository: store, device: TestDeviceGateway()),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Pengaturan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Catatan pengujian'), findsNothing);
       expect(find.text('Tinjau laporan lokal'), findsNothing);
       await tester.ensureVisible(find.text('Informasi perangkat'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Informasi perangkat'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Simpan inventaris lokal'), findsNothing);
       expect(find.text('Perangkat uji'), findsOneWidget);
       expect(find.text('Fixture previous Android'), findsNothing);
-      expect(identical(store.data, original), isTrue);
+      expect(store.data.inventory, original.inventory);
+      expect(store.data.records, original.records);
+      expect(store.data.theme, original.theme);
+      expect(store.data.lastMode, 'carplay');
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Tentang DashTConnect'));
       await tester.tap(find.text('Tentang DashTConnect'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Tentang aplikasi'), findsOneWidget);
       expect(find.textContaining('Versi '), findsOneWidget);
       expect(find.textContaining('Receiver CarPlay tahap uji'), findsNothing);
       expect(find.textContaining('eksperimen'), findsNothing);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Uji tampilan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Uji tampilan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       for (var index = 1; index <= 4; index++) {
         await tester.ensureVisible(find.text('Target $index\n0 sentuhan'));
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         await tester.tap(find.text('Target $index\n0 sentuhan'));
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(find.text('Target $index\n1 sentuhan'), findsOneWidget);
       }
       expect(find.text('4 dari 4 target disentuh'), findsOneWidget);
       await tester.ensureVisible(find.text('Ulangi penghitung'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Ulangi penghitung'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('0 dari 4 target disentuh'), findsOneWidget);
       for (var index = 1; index <= 4; index++) {
         expect(find.text('Target $index\n0 sentuhan'), findsOneWidget);
@@ -261,17 +310,21 @@ void main() {
       _app(repository: _readyRepository(), device: TestDeviceGateway()),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(
       tester.widget<AppNavigation>(find.byType(AppNavigation)).rail,
       isTrue,
     );
     await tester.tap(find.text('Panduan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.ensureVisible(find.text('Uji tampilan'));
     await tester.tap(find.text('Uji tampilan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Target 2\n0 sentuhan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(find.text('Target 2\n1 sentuhan'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
@@ -284,9 +337,11 @@ void main() {
       _app(repository: _readyRepository(), device: bridge),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(find.byTooltip('Redupkan layar HP'), findsNothing);
     await tester.tap(find.text('Pengaturan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.ensureVisible(find.text('Mode redup'));
     var focused = false;
     for (var i = 0; i < 20 && !focused; i++) {
@@ -300,6 +355,7 @@ void main() {
     expect(focused, isTrue);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(bridge.dimmed, isTrue);
     await tester.pumpWidget(const SizedBox());
   });
@@ -310,14 +366,19 @@ void main() {
       final bridge = TestDeviceGateway();
       await tester.pumpWidget(_app(repository: store, device: bridge));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Pengaturan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Tampilan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Gelap'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(
         tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
         ThemeMode.dark,
@@ -326,28 +387,35 @@ void main() {
       await tester.ensureVisible(find.text('Mode redup'));
       await tester.tap(find.text('Mode redup'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(bridge.dimmed, isTrue);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.scrollUntilVisible(
         find.text('Uji tampilan'),
         160,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Uji tampilan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Aktifkan mode redup'), findsNothing);
       expect(find.text('Pulihkan kecerahan'), findsNothing);
       expect(find.byType(SwitchListTile), findsNothing);
       expect(bridge.dimmed, isTrue);
       await tester.tap(find.text('Target 1\n0 sentuhan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Target 1\n1 sentuhan'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Pengaturan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Mode redup'));
       expect(
         tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
@@ -355,6 +423,7 @@ void main() {
       );
       await tester.tap(find.text('Mode redup'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(bridge.dimmed, isFalse);
       await tester.pumpWidget(const SizedBox());
       expect(store.data.theme, 'dark');
@@ -374,39 +443,51 @@ void main() {
         _app(repository: _readyRepository(), device: TestDeviceGateway()),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.scrollUntilVisible(
         find.text('Uji tampilan'),
         240,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Uji tampilan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.ensureVisible(find.text('Target 4\n0 sentuhan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Target 4\n0 sentuhan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Target 4\n1 sentuhan'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Panduan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.scrollUntilVisible(
         find.text('Buka tutorial'),
         160,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Buka tutorial'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       expect(find.text('Langkah 1 dari 4'), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.tap(find.text('Pengaturan'));
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       await tester.scrollUntilVisible(
         find.text('Tentang DashTConnect'),
         240,

@@ -1,8 +1,8 @@
 name: dashtconnect
-description: "Pendamping koneksi iPhone, receiver Android, dan T-Link."
+description: "Receiver Apple CarPlay dan persiapan Android Auto internal untuk T-Link."
 publish_to: 'none'
 
-version: 0.7.6+39
+version: 0.8.2+42
 
 environment:
   sdk: ^3.13.5

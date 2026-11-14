@@ -1,5 +1,15 @@
 # Receiver iPhone dalam DashTConnect
 
+## Batas mode pada 0.8.0+40
+
+Dokumen ini khusus mode Apple CarPlay. Pilih Apple CarPlay dari selector untuk membuka alur receiver existing. Mulai receiver, izin, pairing, pemilihan kandidat, iAP2/Wi-Fi, runtime/frame, decoder, audio, input dan shutdown tidak diganti. Beranda baru tidak menampilkan connected tanpa sesi nyata.
+
+Android Auto memiliki adapter/gateway serta [panduan terpisah](dual-mode.md); tidak memakai ReceiverChannel atau Wi-Fi receiver CarPlay. Lihat [audit Android Auto](android-auto.md). Informasi offline-only atau startup lama dalam arsip harus dibaca sesuai versi pengujiannya.
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 Versi 0.4.0+6 menambahkan mesin receiver dalam APK sendiri. Flutter tetap mengelola halaman, tema, persiapan dan status. Kotlin menangani Bluetooth RFCOMM/iAP2, Wi-Fi Direct lokal, AirPlay/RTSP, autentikasi, decoder MediaCodec, audio dan pengiriman sentuhan.
 
 ## Batas folder dan kontrak

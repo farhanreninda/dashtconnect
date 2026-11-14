@@ -88,3 +88,12 @@ Label eksperimen, peringatan tahap uji dan permintaan membuktikan kompatibilitas
 
 Identitas aplikasi memakai logo 48 dp, nama, versi dan satu deskripsi singkat. Dua panel berikut menampilkan diagram alur koneksi serta tiga ringkasan fitur berikon dengan pemisah: receiver, panduan/uji tampilan, dan mode redup. Panel bertumpuk pada portrait dan berdampingan sama tinggi jika ruang landscape mencukupi. Isi tidak dibuat memenuhi tinggi layar secara paksa; teks besar tetap membungkus dan dapat digulir. Baris fitur bersifat informatif tanpa chevron atau tombol semu.
 
+
+
+# Dua mode 0.8.0
+
+Selector menjelaskan perangkat dan transport masing-masing mode. CarPlay memakai biru brand, Android Auto teal; label dan ikon memastikan makna tidak bergantung warna. Android Auto hanya memeriksa kesiapan layanan; receiver internal menuju T-Link belum tersedia dan tidak memakai connected/progres sesi tiruan. Screenshot baru terpisah dari galeri CarPlay lama.
+
+Koreksi pemilik pada 0.8.1: aplikasi membuka Beranda umum, tombol Pilih mode koneksi berada dalam isi Beranda dan bukan kanan atas. Header hanya menampilkan identitas serta mode aktif. Navbar mengikuti bentuk membulat yang diminta: satu wadah radius 20dp dengan border utuh, pilihan aktif radius 14dp dan warna primaryContainer; garis bawah dihapus karena terlihat kotak/patah. Fokus keyboard memakai border seragam agar animasi tidak berganti dari border sebagian ke border penuh. ENERGY 1 / RHYTHM 2 / MOTION 1 tetap dipertahankan.
+
+Koreksi 0.8.2: pemilik menilai Beranda/Panduan terlalu sepi dan navbar terlalu menempel bawah. Beranda menggunakan diagram existing, akses cepat yang nyata dan ringkasan tiga fitur existing; tidak menambah statistik atau dekorasi tanpa fungsi. Panduan membuka isi langsung dengan pilihan topik independen dari mode koneksi. Pintasan mode di Pengaturan dihapus karena menduplikasi Beranda. Navbar portrait berjarak 16dp di atas inset sistem, dengan 8dp di atas wadah. Dials tetap ENERGY 1 / RHYTHM 2 / MOTION 1; kepadatan berasal dari isi berguna, bukan animasi berulang.

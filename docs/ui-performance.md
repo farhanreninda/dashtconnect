@@ -1,5 +1,17 @@
 # UI dan performa 0.5.0+10
 
+## Audit performa dua mode 0.8.0+40
+
+Protokol, decoder, buffer musik dan dispatcher sentuhan CarPlay tidak diubah. Tidak mengklaim peningkatan fps/latensi koneksi dari redesign ini.
+
+Tab tetap lazy dan retained. Android Auto tidak meminta status saat selector atau mode CarPlay aktif. Subscription di Beranda Android Auto dibatalkan ketika tab disembunyikan atau mode dilepas. Native receiver USB mengikuti foreground; pemeriksaan hanya membaca satu paket dan metadata USB, tidak memindai seluruh paket, dan tidak polling periodik. Mesin AAP internal belum tersedia, sehingga belum ada klaim performa sesi Android Auto.
+
+Event baru memiliki prioritas di atas future refresh lama. Dispose/ganti tab membatalkan relevansi future yang tertinggal. Setup, Settings dan penyimpanan mempunyai guard aksi ganda. Animasi logo singkat sekali, transisi navigasi 160 ms mengikuti reduced motion. Pengujian mengukur ketepatan event/lifecycle dan reflow, bukan mengklaim throughput hardware. Batas pengukuran perangkat dicatat di validasi.
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 ## Pembaruan navigasi 0.5.5+15
 
 Efek opacity yang mencakup seluruh isi tab dihapus. Pergantian tab langsung menampilkan konten; indikator navigasi tetap bergerak singkat. IndexedStack, lazy tab, TickerMode dan retensi posisi tetap dipakai. Tidak menambah cache atau layer render tanpa hasil pengukuran yang menunjukkan kebutuhan.

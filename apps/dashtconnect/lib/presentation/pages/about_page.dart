@@ -77,7 +77,7 @@ class AboutPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'Receiver CarPlay di Android untuk menghubungkan iPhone ke layar mobil melalui T-Link.',
+                    'Dua alur koneksi: receiver Apple CarPlay untuk iPhone melalui T-Link, dan Android Auto satu HP melalui T-Link; receiver Android Auto meneruskan gambar dan sentuhan, belum suara.',
                   ),
                 ],
               ),
@@ -89,14 +89,14 @@ class AboutPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Alur koneksi',
+                      'Alur Apple CarPlay',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
                     const ConnectionRoute(),
                     const SizedBox(height: 12),
                     Text(
-                      'Internet tetap di iPhone. Android menggunakan koneksi lokal.',
+                      'CarPlay: iPhone → Android → T-Link. Android Auto: sumber dan receiver internal pada HP yang sama → T-Link.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],

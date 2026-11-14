@@ -1,5 +1,21 @@
 # PRD — DashTConnect
 
+## Produk aktif 0.8.2+42
+
+DashTConnect membuka Beranda umum dengan diagram alur, akses cepat dan ringkasan fitur. Pilih mode koneksi pada isi Beranda membuka receiver Apple CarPlay untuk iPhone melalui Android/T-Link, serta target Android Auto satu HP dengan receiver internal dan HU T-Link yang sama. Kedua beranda dan status dipisahkan. Panduan kedua mode dapat langsung dibaca melalui topik tanpa memilih koneksi. Pilihan terakhir ditandai di selector. Tidak ada tombol mode di kanan atas atau Pengaturan; akses tersedia pada isi Beranda dan tutorial pertama.
+
+Prioritas: pertahankan protokol CarPlay yang berjalan; jangan membuat proyeksi palsu. Receiver Android Auto internal belum terintegrasi. UI hanya memeriksa layanan dan memberi panduan sesuai batas aktual. Tidak ada connected atau tombol connect/disconnect fiktif. T-Link tidak menggantikan protokol Android Auto; aplikasi receiver eksternal tidak diperbolehkan pemilik.
+
+UI memakai tema sistem/terang/gelap, navigasi compact dengan rail, tipografi konsisten, animasi logo sekali dan respect reduced motion. CTA CarPlay terjangkau pada landscape pendek; semua konten mendukung scroll dan teks besar. Informasi teknis berada pada Pengaturan. Panduan iPhone/T-Link tidak muncul dalam mode Android Auto.
+
+Kriteria bagian yang tersedia: schema 1 tanpa kehilangan data, kedua mode bisa dipilih/diganti, layanan hilang/nonaktif dan error pembacaan dibedakan, listener mengikuti lifecycle, CarPlay regression, build dan reflow diverifikasi. Kriteria Android Auto penuh belum tercapai: runtime receiver internal, frame/audio/input nyata pada HP yang sama, lalu pengujian melalui HU T-Link. Audit dan pekerjaan tersisa ada pada android-auto.md.
+
+Spesifikasi implementasi dan audit: [arsitektur](architecture.md), [dua mode](dual-mode.md), [Android Auto](android-auto.md). Bukti pengujian terpisah pada [validasi](validation-flutter.md).
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 - **Versi:** 0.4.0
 - **Tanggal:** 22 Oktober 2026
 - **Status:** Pengembangan aplikasi pendamping; kelayakan receiver masih diuji

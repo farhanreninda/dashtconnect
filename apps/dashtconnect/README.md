@@ -1,5 +1,12 @@
 # DashTConnect Flutter Android
 
+Versi 0.8.2+42 membuka Beranda dengan diagram, akses cepat dan ringkasan fitur. Pilih mode koneksi membuka receiver Apple CarPlay existing atau persiapan Android Auto satu HP menuju HU T-Link. Panduan kedua mode dapat dibaca tanpa memilih koneksi. Engine Android Auto internal belum terintegrasi. Lihat [panduan](../../docs/dual-mode.md), [audit Android Auto](../../docs/android-auto.md), dan [arsitektur](../../docs/architecture.md).
+
+AndroidAutoChannel hanya membaca layanan dan USB; tidak ada dependency CarConnection atau receiver eksternal. CarPlay tidak bergantung pada layanan Android Auto.
+
+## Konfigurasi dan perintah proyek
+
+
 Flutter menangani UI dan native Android menangani mesin receiver di dalam APK yang sama. Internet CarPlay tetap melalui iPhone; Wi-Fi berinternet atau data seluler Android boleh aktif bersamaan. Receiver eksperimental sudah diintegrasikan tetapi identitas aksesori runtime belum disertakan, sehingga sesi iPhone belum dapat diuji. Baca [alur receiver](../../docs/receiver.md) untuk persiapan dan batasannya. Dock/rail adaptif, retensi tab dan pemisahan informasi perangkat dijelaskan dalam [audit UI dan performa](../../docs/ui-performance.md).
 
 ## Menjalankan
@@ -39,7 +46,7 @@ Build pertama dapat mengunduh Gradle, Android SDK dan NDK yang diperlukan Flutte
 - Pengaturan: halaman Tampilan, mode redup terpusat, informasi Android hanya-baca dan halaman Tentang DashTConnect. Menu eksperimen, laporan dan isian inventaris manual sudah dikeluarkan; data lama tetap dipertahankan oleh codec penyimpanan.
 - Informasi perangkat: model/OS/ABI, fitur USB host dan Wi-Fi Direct, jaringan default dan validasi internet Android, suhu baterai dan daya eksternal. Info dapat diperbarui; OS/network validation tidak membuktikan WAN benar-benar terputus.
 - Tema sistem, terang dan gelap yang tersimpan. Redesign mengikuti referensi Stitch pemilik dengan biru merek, panel putih/slate dan font lokal Space Grotesk/Inter. Navigasi dock pada portrait sempit dan rail pada landscape/tablet; halaman menyesuaikan ruang setelah rail dan tetap bergulir pada layar pendek.
-- Redup: satu sakelar di **Pengaturan → Layar → Mode redup** meminta `WindowManager.LayoutParams.screenBrightness = 0.03`. Tidak ada overlay hitam atau izin mengubah setelan kecerahan sistem. `FLAG_KEEP_SCREEN_ON` hanya aktif saat mode redup pada jendela ini. Keluar aplikasi memulihkan jendela; saat kembali, permintaan redup diterapkan kembali. Mode redup tidak disimpan lintas restart.
+- Redup: satu sakelar di **Pengaturan â†’ Layar â†’ Mode redup** meminta `WindowManager.LayoutParams.screenBrightness = 0.03`. Tidak ada overlay hitam atau izin mengubah setelan kecerahan sistem. `FLAG_KEEP_SCREEN_ON` hanya aktif saat mode redup pada jendela ini. Keluar aplikasi memulihkan jendela; saat kembali, permintaan redup diterapkan kembali. Mode redup tidak disimpan lintas restart.
 
 ## Percobaan di perangkat dan mobil
 

@@ -19,6 +19,7 @@ import '../support/fakes.dart';
 Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
+  await selectCarPlayIfNeeded(tester);
   final position = tester.getCenter(finder);
   expect(
     position.dy,
@@ -26,6 +27,7 @@ Future<void> tapVisible(WidgetTester tester, Finder finder) async {
   );
   await tester.tap(finder);
   await tester.pumpAndSettle();
+  await selectCarPlayIfNeeded(tester);
   expect(tester.takeException(), isNull);
 }
 
@@ -59,11 +61,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       final panels = find.byType(AppPanel);
       final initialHeight = tester.getSize(panels.first).height;
       for (var i = 0; i < 2; i++) {
         await tester.tap(find.text('Bantuan'));
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         expect(tester.getSize(panels.first), tester.getSize(panels.last));
         expect(tester.takeException(), isNull);
         if (i == 0) {
@@ -95,6 +99,7 @@ void main() {
     );
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     final tileMaterial = tester.widget<Material>(
       find
           .descendant(
@@ -106,6 +111,7 @@ void main() {
     expect((tileMaterial.shape! as RoundedRectangleBorder).side.width, 2);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     expect(opened, isTrue);
   });
 
@@ -123,17 +129,21 @@ void main() {
         tester.view.physicalSize = const Size(320, 640);
         await tester.pumpWidget(
           ResearchApp(
+            androidAuto: TestAndroidAutoGateway(),
             repository: store,
             device: TestDeviceGateway(),
             receiver: TestReceiverGateway(),
           ),
         );
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         await tester.tap(find.text('Panduan'));
         await tester.pumpAndSettle();
+        await selectCarPlayIfNeeded(tester);
         for (final size in [const Size(320, 640), const Size(800, 360)]) {
           tester.view.physicalSize = size;
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           final cards = find.byType(AppActionTile);
           expect(cards, findsNWidgets(3));
           final dimensions = [
@@ -173,6 +183,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await selectCarPlayIfNeeded(tester);
       if (scale == 1) {
         for (final choice in ['Sesuai perangkat', 'Terang', 'Gelap']) {
           expect(
@@ -198,14 +209,17 @@ void main() {
       ..data = const Notebook(tutorialCompleted: true);
     await tester.pumpWidget(
       ResearchApp(
+        androidAuto: TestAndroidAutoGateway(),
         repository: store,
         device: TestDeviceGateway(),
         receiver: TestReceiverGateway(),
       ),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     await tester.tap(find.text('Pengaturan'));
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     final deviceRow = find.ancestor(
       of: find.text('Informasi perangkat'),
       matching: find.byType(ListTile),
@@ -239,6 +253,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await selectCarPlayIfNeeded(tester);
     final label = tester.renderObject<RenderParagraph>(find.text('Pengaturan'));
     expect(
       label.getBoxesForSelection(
@@ -292,9 +307,15 @@ void main() {
             return receiver.updates.close();
           });
           await tester.pumpWidget(
-            ResearchApp(repository: store, device: device, receiver: receiver),
+            ResearchApp(
+              androidAuto: TestAndroidAutoGateway(),
+              repository: store,
+              device: device,
+              receiver: receiver,
+            ),
           );
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           expect(
             tester.widget<AppNavigation>(find.byType(AppNavigation)).rail,
             isTrue,
@@ -330,11 +351,14 @@ void main() {
           expect(find.text('Target 4\n1 sentuhan'), findsOneWidget);
           tester.view.physicalSize = const Size(360, 800);
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           expect(find.text('Target 4\n1 sentuhan'), findsOneWidget);
           tester.view.physicalSize = const Size(800, 360);
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           await tester.pageBack();
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
 
           await tapVisible(tester, find.text('Panduan'));
           await tapVisible(tester, find.text('Buka Wi-Fi'));
@@ -354,12 +378,15 @@ void main() {
           final snapshot = store.data;
           tester.view.physicalSize = const Size(360, 800);
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           tester.view.physicalSize = const Size(800, 360);
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           expect(find.text('Perangkat uji'), findsOneWidget);
           expect(identical(store.data, snapshot), isTrue);
           await tester.pageBack();
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           expect(find.text('Catatan pengujian'), findsNothing);
           expect(find.text('Tinjau laporan lokal'), findsNothing);
           await tapVisible(tester, find.text('Tentang DashTConnect'));
@@ -368,9 +395,11 @@ void main() {
             find.text('Atur kecerahan layar HP saat terhubung.'),
           );
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           expect(tester.takeException(), isNull);
           await tester.pageBack();
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
 
           await tapVisible(tester, find.text('Beranda'));
           await tapVisible(tester, find.text('Mulai receiver'));
@@ -382,6 +411,7 @@ void main() {
           );
           await tester.pageBack();
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           await tester.pumpWidget(const SizedBox());
         },
         variant: TargetPlatformVariant.only(TargetPlatform.android),
@@ -413,6 +443,7 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
+          await selectCarPlayIfNeeded(tester);
           for (var step = 1; step <= 4; step++) {
             expect(find.text('Langkah $step dari 4'), findsOneWidget);
             await tapVisible(tester, find.byKey(const Key('guide-next')));

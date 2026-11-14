@@ -23,10 +23,10 @@ ThemeData buildAppTheme(Brightness brightness) {
         onSecondaryContainer: dark
             ? const Color(0xFFDCE8FF)
             : const Color(0xFF13458C),
-        surface: dark ? const Color(0xFF10141B) : const Color(0xFFF6F7F9),
-        surfaceContainerLowest: dark ? const Color(0xFF171E28) : Colors.white,
+        surface: dark ? const Color(0xFF101418) : const Color(0xFFF6F7F9),
+        surfaceContainerLowest: dark ? const Color(0xFF192026) : Colors.white,
         surfaceContainerLow: dark
-            ? const Color(0xFF1B2634)
+            ? const Color(0xFF202A33)
             : const Color(0xFFEFF2F6),
         surfaceContainer: dark
             ? const Color(0xFF243247)
@@ -46,6 +46,7 @@ ThemeData buildAppTheme(Brightness brightness) {
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
+    splashFactory: InkRipple.splashFactory,
     fontFamily: 'Inter',
   );
   TextStyle heading(double size) => TextStyle(
@@ -76,7 +77,7 @@ ThemeData buildAppTheme(Brightness brightness) {
     ),
   );
   final buttonShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(14),
+    borderRadius: BorderRadius.circular(12),
   );
   return base.copyWith(
     textTheme: text,
@@ -84,13 +85,13 @@ ThemeData buildAppTheme(Brightness brightness) {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: scheme.surfaceContainerLowest,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: scheme.outline),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: scheme.primary, width: 2),
       ),
       errorMaxLines: 4,
@@ -156,7 +157,7 @@ ThemeData buildAppTheme(Brightness brightness) {
     dividerTheme: DividerThemeData(color: scheme.outlineVariant, space: 1),
     dialogTheme: DialogThemeData(
       backgroundColor: scheme.surfaceContainerLowest,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: scheme.surfaceContainerLowest,
@@ -167,7 +168,7 @@ ThemeData buildAppTheme(Brightness brightness) {
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
   );
 }

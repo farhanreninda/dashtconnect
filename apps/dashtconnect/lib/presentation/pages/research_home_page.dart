@@ -3,6 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../core/app_version.dart';
+import '../../domain/entities/connection_mode.dart';
+import '../../domain/repositories/android_auto_gateway.dart';
+import 'android_auto_page.dart';
+import 'android_auto_guide_page.dart';
+import 'carplay_home_page.dart';
+import '../widgets/app_brand.dart';
 import '../../domain/entities/notebook.dart';
 import '../../domain/repositories/device_gateway.dart';
 import '../../domain/repositories/receiver_gateway.dart';
@@ -23,18 +29,34 @@ class ResearchHome extends StatefulWidget {
     required this.bridge,
     required this.receiver,
     required this.save,
+    required this.mode,
+    required this.androidAuto,
+    required this.onChangeMode,
+    required this.onBackToHome,
   });
   final Notebook notebook;
   final DeviceGateway bridge;
   final ReceiverGateway receiver;
   final Future<void> Function(Notebook) save;
+  final ConnectionMode? mode;
+  final AndroidAutoGateway androidAuto;
+  final VoidCallback onChangeMode;
+  final VoidCallback onBackToHome;
 
   @override
   State<ResearchHome> createState() => _ResearchHomeState();
 }
 
-class _ResearchHomeState extends State<ResearchHome> {
+class _ResearchHomeState extends State<ResearchHome>
+    with SingleTickerProviderStateMixin {
+  late final _fade = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 180),
+    value: 1,
+  );
+  late final _opacity = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
   int _page = 0;
+  late ConnectionMode _guideMode = widget.mode ?? ConnectionMode.carPlay;
   final _visited = <int>{0};
   bool _dimmed = false, _dimBusy = false;
 
@@ -44,6 +66,7 @@ class _ResearchHomeState extends State<ResearchHome> {
       _page = index;
       _visited.add(index);
     });
+    if (!MediaQuery.disableAnimationsOf(context)) _fade.forward(from: 0);
   }
 
   void _message(String text) {
@@ -136,6 +159,8 @@ class _ResearchHomeState extends State<ResearchHome> {
 
   @override
   void dispose() {
+    _opacity.dispose();
+    _fade.dispose();
     unawaited(widget.bridge.setDimmed(false).catchError((Object _) {}));
     super.dispose();
   }
@@ -190,45 +215,61 @@ class _ResearchHomeState extends State<ResearchHome> {
     ),
   );
 
-  Widget _home() => AppContent(
-    key: const PageStorageKey('home'),
+  Widget _home() => widget.mode == null
+      ? _overview()
+      : widget.mode == ConnectionMode.carPlay
+      ? CarPlayHomePage(
+          onStart: _openReceiver,
+          onGuide: () => _selectPage(1),
+          onChooseMode: widget.onChangeMode,
+        )
+      : AndroidAutoPage(
+          gateway: widget.androidAuto,
+          active: _page == 0,
+          onGuide: () => _selectPage(1),
+          onChooseMode: widget.onChangeMode,
+        );
+
+  Widget _overview() => AppContent(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const PageIntro(
-          'Koneksi ke layar mobil',
-          'Kelola koneksi iPhone dan layar mobil dari satu tempat.',
+          'Koneksi ke head unit',
+          'Siapkan sambungan, periksa layar, dan kelola tampilan dari satu tempat.',
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 20),
         AdaptiveColumns(
           first: AppPanel(
+            tinted: true,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _heading('Receiver iPhone'),
+                _heading('Mulai koneksi'),
                 const SizedBox(height: 8),
                 const Text(
-                  'Bluetooth menemukan iPhone, Wi-Fi lokal membawa gambar dan audio.',
+                  'Pilih Apple CarPlay atau Android Auto. Keduanya menggunakan jalur ke HU T-Link.',
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 FilledButton.icon(
-                  onPressed: _openReceiver,
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('Mulai receiver'),
+                  key: const Key('choose-connection-mode'),
+                  onPressed: widget.onChangeMode,
+                  icon: const Icon(Icons.devices_outlined),
+                  label: const Text('Pilih mode koneksi'),
                 ),
               ],
             ),
           ),
           second: AppPanel(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _heading('Jalur ke head unit'),
-                const SizedBox(height: 12),
+                _heading('Alur Apple CarPlay'),
+                const SizedBox(height: 16),
                 const ConnectionRoute(),
-                const SizedBox(height: 8),
+                const Divider(height: 24),
                 Text(
-                  'Langkah koneksi dan pengecekan T-Link ada di Panduan.',
+                  'Android Auto satu HP: gambar dan sentuhan lewat head unit server, tanpa suara.',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -236,113 +277,190 @@ class _ResearchHomeState extends State<ResearchHome> {
           ),
         ),
         const SizedBox(height: 24),
-        const AppNotice.warning('Lakukan pengaturan saat mobil terparkir.'),
+        _heading('Akses cepat'),
+        const SizedBox(height: 12),
+        AdaptiveColumns(
+          first: AppActionTile(
+            icon: Icons.route_outlined,
+            title: 'Panduan koneksi',
+            subtitle: 'Langkah CarPlay, Android Auto, dan T-Link.',
+            onTap: () => _selectPage(1),
+          ),
+          second: AppActionTile(
+            icon: Icons.touch_app_outlined,
+            title: 'Uji tampilan T-Link',
+            subtitle: 'Periksa gambar dan sentuhan head unit.',
+            onTap: _openDisplay,
+          ),
+        ),
+        const SizedBox(height: 20),
+        AppPanel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _heading('Saat CarPlay tersambung'),
+              const SizedBox(height: 8),
+              for (final feature in const [
+                (
+                  Icons.speaker_outlined,
+                  'Gambar, suara, dan sentuhan',
+                  'Terima tampilan dan audio CarPlay dari iPhone.',
+                ),
+                (
+                  Icons.open_with_rounded,
+                  'Kontrol mengambang',
+                  'Geser tombol agar tidak menutupi aplikasi.',
+                ),
+                (
+                  Icons.brightness_low_outlined,
+                  'Mode redup',
+                  'Atur kecerahan HP dari Pengaturan atau kontrol sesi.',
+                ),
+              ])
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    feature.$1,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  title: Text(feature.$2),
+                  subtitle: Text(feature.$3),
+                ),
+            ],
+          ),
+        ),
       ],
     ),
   );
 
-  Widget _guide() => AppContent(
-    key: const PageStorageKey('guide'),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const PageIntro(
-          'Mulai dari sini',
-          'Ikuti alur koneksi, lalu periksa tampilan di layar mobil.',
-        ),
-        const SizedBox(height: 24),
-        AdaptiveColumns(
-          first: AppPanel(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _heading('Alur koneksi'),
-                const SizedBox(height: 16),
-                const ConnectionRoute(),
-                const SizedBox(height: 16),
-                FilledButton.icon(
-                  onPressed: _replayGuide,
-                  icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('Buka tutorial'),
-                ),
-              ],
-            ),
-          ),
-          second: AppPanel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _heading('Koneksi dan tampilan'),
-                const SizedBox(height: 12),
-                AppActionTile(
-                  icon: Icons.wifi,
-                  title: 'Buka Wi-Fi',
-                  subtitle: 'Wi-Fi lokal.',
-                  onTap: () => _settingsAction('wifi'),
-                ),
-                const SizedBox(height: 12),
-                AppActionTile(
-                  icon: Icons.bluetooth,
-                  title: 'Buka Bluetooth',
-                  subtitle: 'Pasangkan iPhone.',
-                  onTap: () => _settingsAction('bluetooth'),
-                ),
-                const SizedBox(height: 12),
-                AppActionTile(
-                  icon: Icons.touch_app_outlined,
-                  title: 'Uji tampilan',
-                  subtitle: 'Gambar & sentuhan.',
-                  onTap: _openDisplay,
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _guide() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 4,
           children: [
-            _heading('Bantuan koneksi'),
-            const SizedBox(height: 12),
-            _help(
-              'guide-tlink-help',
-              Icons.directions_car_outlined,
-              'Belum tampil di head unit?',
-              const [
-                'Gunakan kabel data pada port USB head unit.',
-                'Buka T-Link dan izinkan akses di Android.',
-                'Jalankan Uji tampilan dari Panduan.',
-              ],
-              warning: 'Jika gambar belum terlihat, periksa kabel dan kompatibilitas T-Link.',
-            ),
-            const SizedBox(height: 12),
-            _help(
-              'guide-receiver-help',
-              Icons.phone_iphone,
-              'iPhone belum tersambung?',
-              const [
-                'Pasangkan iPhone melalui Bluetooth Android.',
-                'Buka Mulai receiver, izinkan perangkat sekitar, lalu pilih iPhone.',
-                'Setujui permintaan CarPlay di iPhone.',
-              ],
-            ),
-            const SizedBox(height: 12),
-            _help(
-              'guide-dim-help',
-              Icons.brightness_low_outlined,
-              'Layar redup dan jaringan lokal',
-              const [
-                'Aktifkan Mode redup di Pengaturan.',
-                'Wi-Fi berinternet atau data seluler Android boleh tetap aktif; biarkan Wi-Fi dan Bluetooth menyala.',
-                'Internet tetap digunakan di iPhone.',
-              ],
-            ),
+            for (final mode in ConnectionMode.values)
+              ChoiceChip(
+                label: Text(mode.label),
+                selected: _guideMode == mode,
+                onSelected: (_) => setState(() => _guideMode = mode),
+              ),
           ],
         ),
-      ],
-    ),
+      ),
+      Expanded(
+        child: KeyedSubtree(key: ValueKey(_guideMode), child: _guideContent()),
+      ),
+    ],
   );
+
+  Widget _guideContent() => _guideMode == ConnectionMode.androidAuto
+      ? AndroidAutoGuidePage(onTestDisplay: _openDisplay)
+      : AppContent(
+          key: const PageStorageKey('guide'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const PageIntro(
+                'Panduan Apple CarPlay',
+                'Siapkan iPhone, Android, dan tampilan T-Link.',
+              ),
+              const SizedBox(height: 24),
+              AdaptiveColumns(
+                first: AppPanel(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _heading('Alur koneksi'),
+                      const SizedBox(height: 16),
+                      const ConnectionRoute(),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: _replayGuide,
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text('Buka tutorial'),
+                      ),
+                    ],
+                  ),
+                ),
+                second: AppPanel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _heading('Koneksi dan tampilan'),
+                      const SizedBox(height: 12),
+                      AppActionTile(
+                        icon: Icons.wifi,
+                        title: 'Buka Wi-Fi',
+                        subtitle: 'Wi-Fi lokal.',
+                        onTap: () => _settingsAction('wifi'),
+                      ),
+                      const SizedBox(height: 12),
+                      AppActionTile(
+                        icon: Icons.bluetooth,
+                        title: 'Buka Bluetooth',
+                        subtitle: 'Pasangkan iPhone.',
+                        onTap: () => _settingsAction('bluetooth'),
+                      ),
+                      const SizedBox(height: 12),
+                      AppActionTile(
+                        icon: Icons.touch_app_outlined,
+                        title: 'Uji tampilan',
+                        subtitle: 'Gambar & sentuhan.',
+                        onTap: _openDisplay,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _heading('Bantuan koneksi'),
+                  const SizedBox(height: 12),
+                  _help(
+                    'guide-tlink-help',
+                    Icons.directions_car_outlined,
+                    'Belum tampil di head unit?',
+                    const [
+                      'Gunakan kabel data pada port USB head unit.',
+                      'Buka T-Link dan izinkan akses di Android.',
+                      'Jalankan Uji tampilan dari Panduan.',
+                    ],
+                    warning: 'Jika gambar belum terlihat, periksa kabel dan kompatibilitas T-Link.',
+                  ),
+                  const SizedBox(height: 12),
+                  _help(
+                    'guide-receiver-help',
+                    Icons.phone_iphone,
+                    'iPhone belum tersambung?',
+                    const [
+                      'Pasangkan iPhone melalui Bluetooth Android.',
+                      'Buka Mulai receiver, izinkan perangkat sekitar, lalu pilih iPhone.',
+                      'Setujui permintaan CarPlay di iPhone.',
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _help(
+                    'guide-dim-help',
+                    Icons.brightness_low_outlined,
+                    'Layar redup dan jaringan lokal',
+                    const [
+                      'Aktifkan Mode redup di Pengaturan.',
+                      'Wi-Fi berinternet atau data seluler Android boleh tetap aktif; biarkan Wi-Fi dan Bluetooth menyala.',
+                      'Internet tetap digunakan di iPhone.',
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
 
   Widget _settings() => AppContent(
     key: const PageStorageKey('settings'),
@@ -434,8 +552,10 @@ class _ResearchHomeState extends State<ResearchHome> {
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.notebook.tutorialCompleted) {
+    if (widget.mode == ConnectionMode.carPlay &&
+        !widget.notebook.tutorialCompleted) {
       return SetupGuidePage(
+        onChangeMode: widget.onChangeMode,
         firstRun: true,
         onComplete: () =>
             widget.save(widget.notebook.copyWith(tutorialCompleted: true)),
@@ -446,63 +566,57 @@ class _ResearchHomeState extends State<ResearchHome> {
     final size = MediaQuery.sizeOf(context);
     final rail =
         size.width >= 840 || (size.width >= 600 && size.width > size.height);
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.asset(
-                'assets/branding/dashtconnect-logo.png',
-                width: 34,
-                height: 34,
-                cacheWidth: 128,
-                cacheHeight: 128,
-                excludeFromSemantics: true,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Flexible(
-              child: Text('DashTConnect', overflow: TextOverflow.ellipsis),
-            ),
-          ],
+    return PopScope(
+      canPop: widget.mode == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) widget.onBackToHome();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: AppBrand(
+            key: ValueKey(widget.mode),
+            subtitle: widget.mode?.label,
+          ),
         ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (rail)
-              AppNavigation(
-                rail: true,
-                selectedIndex: _page,
-                onSelected: _selectPage,
+        body: SafeArea(
+          top: false,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (rail)
+                AppNavigation(
+                  rail: true,
+                  selectedIndex: _page,
+                  onSelected: _selectPage,
+                ),
+              Expanded(
+                child: FadeTransition(
+                  opacity: _opacity,
+                  child: IndexedStack(
+                    index: _page,
+                    children: [
+                      for (var index = 0; index < 3; index++)
+                        TickerMode(
+                          enabled: index == _page,
+                          child: !_visited.contains(index)
+                              ? const SizedBox.shrink()
+                              : switch (index) {
+                                  0 => _home(),
+                                  1 => _guide(),
+                                  _ => _settings(),
+                                },
+                        ),
+                    ],
+                  ),
+                ),
               ),
-            Expanded(
-              child: IndexedStack(
-                index: _page,
-                children: [
-                  for (var index = 0; index < 3; index++)
-                    TickerMode(
-                      enabled: index == _page,
-                      child: !_visited.contains(index)
-                          ? const SizedBox.shrink()
-                          : switch (index) {
-                              0 => _home(),
-                              1 => _guide(),
-                              _ => _settings(),
-                            },
-                    ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
+        bottomNavigationBar: rail
+            ? null
+            : AppNavigation(selectedIndex: _page, onSelected: _selectPage),
       ),
-      bottomNavigationBar: rail
-          ? null
-          : AppNavigation(selectedIndex: _page, onSelected: _selectPage),
     );
   }
 }

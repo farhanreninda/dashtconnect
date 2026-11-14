@@ -1,5 +1,7 @@
 # DashTConnect website
 
+Aplikasi 0.8.0 memiliki dua pilihan; receiver Android Auto internal satu HP menuju T-Link belum terintegrasi. Galeri web berisi screenshot CarPlay 0.7.3 sesuai SOURCES.json, belum seluruhnya menggambarkan UI dual-mode. Screenshot UI terkini ada pada docs/assets/dual-mode; jangan memakai screenshot lama sebagai bukti sesi Android Auto. Panduan aktual: [dua mode](../docs/dual-mode.md) dan [audit Android Auto](../docs/android-auto.md).
+
 Landing page statis berbahasa Indonesia dengan Astro, TypeScript, dan CSS. Source website terpisah dari Flutter/Android. Screenshot asli dari pemilik proyek tersimpan di `src/assets/screenshots`; checksum dan sumbernya dicatat dalam `SOURCES.json`.
 
 ## Menjalankan lokal
@@ -29,9 +31,9 @@ Tujuan publikasi: **https://farhanreninda.my.id/dashtconnect/**.
 
 1. Repository proyek harus tetap bernama `dashtconnect`.
 2. Pertahankan custom domain `farhanreninda.my.id` pada user site `farhanreninda.github.io`. Project Pages mengikuti domain user site tersebut dengan path nama repository. Tidak perlu menambah DNS untuk `/dashtconnect/`.
-3. Pada repo `dashtconnect`, buka **Settings → Pages → Build and deployment → Source → GitHub Actions**. Jangan mengisi Custom domain pada repo proyek ini dan jangan menambahkan `CNAME` pada website.
+3. Pada repo `dashtconnect`, buka **Settings â†’ Pages â†’ Build and deployment â†’ Source â†’ GitHub Actions**. Jangan mengisi Custom domain pada repo proyek ini dan jangan menambahkan `CNAME` pada website.
 4. Setelah perubahan website ditinjau, commit/push folder `website` dan `.github/workflows/deploy-website.yml` ke `main`. Workflow membangun dan menguji website sebelum mengunggah hanya `website/dist` ke Pages.
-5. Workflow juga dapat dijalankan dari **Actions → DashTConnect website → Run workflow** pada branch `main`. PR hanya membangun dan menguji; PR tidak melakukan deployment.
+5. Workflow juga dapat dijalankan dari **Actions â†’ DashTConnect website â†’ Run workflow** pada branch `main`. PR hanya membangun dan menguji; PR tidak melakukan deployment.
 
 Workflow berjalan pada perubahan website atau file workflow. Perubahan Android tidak memicu deployment website. Folder build, cache, dependensi, hasil tes, serta `.local-tools` tidak menjadi artefak Pages. Build web tidak membaca aset autentikasi Android dan tidak menyertakan APK.
 

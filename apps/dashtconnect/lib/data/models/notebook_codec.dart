@@ -20,6 +20,7 @@ class NotebookCodec {
 
   static Map<String, dynamic> toMap(Notebook notebook) => {
     'schema': 1,
+    if (notebook.lastMode != null) 'lastMode': notebook.lastMode,
     'theme': notebook.theme,
     if (notebook.tutorialCompleted) 'tutorialCompleted': true,
     'inventory': notebook.inventory,
@@ -30,6 +31,7 @@ class NotebookCodec {
 
   static Notebook fromMap(Map<String, dynamic> json) {
     if (json['schema'] != 1 ||
+        (json.containsKey('lastMode') && json['lastMode'] is! String) ||
         (json.containsKey('tutorialCompleted') &&
             json['tutorialCompleted'] is! bool) ||
         !['system', 'light', 'dark'].contains(json['theme']) ||
@@ -45,6 +47,7 @@ class NotebookCodec {
       return MapEntry(key, _recordFromJson(value));
     });
     return Notebook(
+      lastMode: json['lastMode'] as String?,
       inventory: _readStrings(json['inventory']),
       theme: json['theme'] as String,
       tutorialCompleted: json['tutorialCompleted'] as bool? ?? false,

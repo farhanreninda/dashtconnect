@@ -15,6 +15,8 @@
 
 Source, perubahan, konfigurasi build dan notice receiver dipertahankan dalam repo. Distribusi APK gabungan harus memenuhi ketentuan GPL-3.0 yang berlaku, termasuk penyediaan corresponding source dan notice yang sesuai. File lisensi sumber protokol juga dipaketkan dalam assets APK. Perubahan lokal belum dipublikasikan; jangan menganggap adanya file ini sebagai bukti kewajiban distribusi sudah selesai.
 
+Modul `android/androidauto` ditulis untuk DashTConnect. Nomor pesan dan nomor field protokol Android Auto dirujuk dari file `.proto` [OpenHeadunit](https://github.com/andreknieriem/open-headunit/tree/112ad13a4be59bcc4d1ccc466fb7c6ca3e9224a0) (AGPL-3.0); kode, aset, dan sertifikat proyek tersebut tidak disalin atau dibundel. Sertifikat head unit untuk Android Auto disediakan lokal di luar Git dan tidak mendapat lisensi dari repo ini.
+
 UI/website upstream AGPL dan ikon Apple/BYD tidak dimasukkan. Source repo tidak menyertakan data autentikasi. Build uji pribadi 0.6.0 menyertakan identitas eksperimen dari assets release publik [DiPlay 0.2.21](https://github.com/shihabal3amri/DiPlay/releases/tag/v0.2.21), yang oleh upstream dinyatakan berasal dari firmware Carlinkit publik. SHA-256 APK sumber: `916c0708beb1022d4ea9678ff6a46dfb6d234f707837a2cbd80d615e8e2bb2e3`. Aset disimpan lokal di luar Git, tanpa memasang atau membuka aplikasi sumber.
 
 Identitas aksesori bukan bagian source terbuka tersebut dan tidak otomatis mendapat lisensi ulang. Penerimaan oleh iPhone, kompatibilitas versi iOS, dan kelayakan distribusi umum belum dipastikan. Kunci yang dibundel dapat diekstrak dari APK; jangan memakai APK uji pribadi ini sebagai paket publikasi. Tidak ada afiliasi atau sertifikasi Apple/Toyota/BYD yang diklaim.

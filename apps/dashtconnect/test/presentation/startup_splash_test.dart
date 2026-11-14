@@ -145,6 +145,7 @@ void main() {
     final repository = _DelayedRepository();
     await tester.pumpWidget(
       ResearchApp(
+        androidAuto: TestAndroidAutoGateway(),
         repository: repository,
         device: TestDeviceGateway(),
         receiver: TestReceiverGateway(),
@@ -158,7 +159,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(StartupSplash), findsNothing);
-    expect(find.text('Mulai receiver'), findsOneWidget);
+    expect(find.text('Koneksi ke head unit'), findsOneWidget);
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.dark,
@@ -172,6 +173,7 @@ void main() {
     final repository = MemoryNotebookRepository()..failLoad = true;
     await tester.pumpWidget(
       ResearchApp(
+        androidAuto: TestAndroidAutoGateway(),
         repository: repository,
         device: TestDeviceGateway(),
         receiver: TestReceiverGateway(),
@@ -183,7 +185,7 @@ void main() {
     repository.data = const Notebook(tutorialCompleted: true);
     await tester.tap(find.text('Coba baca kembali'));
     await tester.pumpAndSettle();
-    expect(find.text('Mulai receiver'), findsOneWidget);
+    expect(find.text('Koneksi ke head unit'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
   });
 }

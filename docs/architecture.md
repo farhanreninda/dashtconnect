@@ -1,5 +1,42 @@
 # Arsitektur DashTConnect
 
+## Arsitektur aktif 0.8.2+42: dua mode
+
+ResearchApp memuat NotebookController dan splash, lalu ResearchHome tanpa mode yang dipilih. Tombol isi Beranda membuka ModeSelectorPage. Pemilihan bisa dibatalkan atau disimpan sebagai key opsional lastMode dalam schema 1 sebelum membuka beranda mode. Key yang belum dikenal tidak memilih transport otomatis; data inventaris, tema, tutorial dan catatan lama tetap dipertahankan. Simpan gagal tidak menavigasi seolah berhasil.
+
+ResearchHome menjadi shell navigasi bersama: header identitas/mode, Beranda/Panduan/Pengaturan, dan akses pilihan mode pada isi Beranda. Tidak ada action mode di app bar atau baris pilihan mode ganda di Pengaturan. Panduan langsung menampilkan topik berdasarkan mode aktif, atau CarPlay bila belum memilih. _guideMode hanya mengatur topik baca; tidak menyimpan lastMode atau memulai transport. CarPlayHomePage dan AndroidAutoPage tetap berbeda. Tutorial pertama khusus CarPlay. Back dari beranda mode mengembalikan Beranda umum.
+
+Domain ConnectionMode/AndroidAutoState/AndroidAutoGateway tidak mengimpor Flutter. Adapter data MethodChannelAndroidAutoGateway memvalidasi payload. Native AndroidAutoChannel tinggal dalam app/androidauto, terpisah dari app/receiver dan library receiver. Tidak menambah dependency proyeksi atau receiver eksternal.
+
+CarPlay tetap melalui ReceiverGateway -> ReceiverChannel -> LocalCarPlayReceiver -> iAP2/Wi-Fi/AirPlay/MediaCodec/audio/touch. Protocol source, buffer, frame rate, sentuhan dan autentikasi tidak diubah pada pekerjaan ini. SurfaceView tetap hidup di bawah overlay persiapan/status; pause/dispose tetap menghentikan sesi.
+
+Android Auto saat ini: AndroidAutoGateway -> AndroidAutoChannel -> PackageManager + UsbManager. Ini pemeriksaan kesiapan, bukan engine receiver. Active stream mengikuti foreground serta tab yang terlihat. Event terbaru tidak ditimpa hasil refresh lama. UsbManager tidak membuka interface atau meminta permission yang mengambil alih T-Link. Target berikutnya adalah sumber Android Auto dan receiver internal pada HP yang sama, kemudian tampilan ke HU T-Link; mesin protokol tersebut belum diintegrasikan.
+
+Tema, panel, ukuran sentuh, route, navigasi, informasi perangkat dan kontrol redup dipakai bersama. Tab dibuat lazy dan dipertahankan; subscription Android Auto dilepas saat keluar Beranda/berpindah mode. Pengurangan animasi dan teks besar didukung.
+
+```mermaid
+flowchart TD
+    A[Splash dan baca data lokal] --> O[Beranda umum]
+    O --> B[Tombol Pilih mode koneksi]
+    B --> C[Apple CarPlay]
+    B --> D[Android Auto]
+    C --> E[Receiver native existing]
+    E --> F[iPhone: iAP2 dan Wi-Fi lokal]
+    E --> G[Tampilan Android ke T-Link]
+    D --> H[Periksa layanan Android Auto dan USB]
+    H --> I[Receiver internal belum terintegrasi]
+    I -. Target satu HP .-> J[Surface Android Auto lokal ke T-Link]
+    C --> K[Pengaturan bersama]
+    D --> K
+    K --> B
+```
+
+Detail persyaratan, kontrak dan batas ada pada [audit Android Auto](android-auto.md) dan [panduan dua mode](dual-mode.md).
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 Versi 0.5.0+10. Aplikasi aktif berada di `apps/dashtconnect`. Flutter/Dart mengelola UI dan aturan aplikasi; Android/Kotlin mengelola API perangkat dan mesin receiver. Susunan domain/data/presentation dipertahankan tanpa menambahkan Compose atau menggandakan aplikasi. Redesign dan optimasi berfokus pada presentasi, navigasi, pemuatan UI dan dokumentasi; kontrak/data/protokol dipertahankan. Audit serta bukti ada di [UI dan performa](ui-performance.md).
 
 Folder aplikasi berisi `pubspec.yaml`; buka folder tersebut di Android Studio untuk menjalankan Flutter. Petunjuk lengkap ada di [panduan Android Studio](android-studio.md). Aturan ignore Git disatukan pada `.gitignore` akar repo; dua salinan pada folder aplikasi/Android sudah dihapus. File Gradle tingkat proyek/modul dan manifest setiap jenis build tetap dipakai.

@@ -1,5 +1,21 @@
 # Redesign UI DashTConnect 0.4.1+7
 
+## Redesign dua mode 0.8.2+42
+
+Entry aplikasi membuka Beranda umum dengan tombol Pilih mode koneksi pada isi halaman. Tombol tersebut membuka pemilihan Apple CarPlay (biru) dan Android Auto (teal dengan kontras teks). Kartu menjelaskan kebutuhan perangkat dan status receiver. LastMode ditandai sebagai riwayat, bukan status terhubung. Tombol mode di kanan atas dihapus sesuai koreksi pemilik.
+
+Beranda umum memakai diagram jalur CarPlay, dua akses cepat yang menjalankan panduan/uji T-Link, dan ringkasan gambar/audio, kontrol mengambang serta redup. Panduan langsung berisi langkah CarPlay; ChoiceChip topik membuka Android Auto tanpa mengganti mode koneksi. Tidak ada halaman kosong yang meminta memilih transport sebelum membaca. Pengaturan berfokus pada layar dan informasi; pintasan mode ganda dihapus. Kedua beranda mode dan status receiver internal Android Auto tetap dipisahkan.
+
+Navigasi memakai satu wadah membulat 20 dp, border utuh dan clipping konsisten. Pilihan aktif berupa bidang warna 14 dp, tanpa garis bawah atau sisi yang terputus. Border fokus tetap utuh dan tidak mengubah ukuran saat animasi. Rail mengikuti ruang landscape. Panel 14 dp, tombol 12 dp, warna ink/slate, tipografi Space Grotesk/Inter dipertahankan. Logo masuk dengan fade 180 ms sekali, menghormati disableAnimations. Tidak menambahkan loop animasi, dependency UI, gradient/glow, atau data dekoratif.
+
+Navbar portrait mempunyai padding bawah 16 dp di dalam SafeArea dan jarak atas 8 dp. Jarak ini memisahkan wadah navigasi dari bar sistem tanpa menaruh konten di area gestur. Konten panjang tetap bergulir pada teks besar dan landscape pendek.
+
+Perubahan komponen bersama mencakup seluruh halaman: receiver, panduan, tampilan, pengaturan, informasi perangkat, About, pesan error dan sheet/dialog. Engine CarPlay dan SurfaceView tidak diganti. Test reflow kedua mode pada 320x640 dan 800x360, skala 100%/200%, serta suite landscape 640x320/terang/gelap dipertahankan. Hasil dan screenshot baru dicatat pada validasi; aset lama diberi konteks versi, tidak disamarkan sebagai UI baru.
+
+## Riwayat sebelum dual mode
+
+Bagian berikut adalah arsip implementasi dan pengujian versi sebelumnya, bukan status 0.8.0. Rujukan terkini ada pada [panduan dua mode](dual-mode.md).
+
 Brief pemilik meminta redesign visual seluruh aplikasi dan perbaikan landscape tanpa mengubah fitur, protokol, data maupun framework. Referensi berasal dari tujuh screenshot dan DESIGN.md dalam ZIP Stitch. HTML tidak dijalankan; angka/status serta integrasi aplikasi lain pada contoh tidak menjadi spesifikasi fungsi.
 
 ## Arah visual

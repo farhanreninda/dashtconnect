@@ -9,12 +9,14 @@ class SetupGuidePage extends StatefulWidget {
     required this.onOpenSettings,
     this.firstRun = false,
     super.key,
+    this.onChangeMode,
   });
 
   final Future<void> Function() onComplete;
   final VoidCallback onTestDisplay;
   final Future<void> Function(String section) onOpenSettings;
   final bool firstRun;
+  final VoidCallback? onChangeMode;
 
   @override
   State<SetupGuidePage> createState() => _SetupGuidePageState();
@@ -70,9 +72,12 @@ class _SetupGuidePageState extends State<SetupGuidePage> {
       'Hubungkan tanpa memutus Wi-Fi',
     ];
     return PopScope(
-      canPop: !_working,
+      canPop: !_working && widget.onChangeMode == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && !_working) widget.onChangeMode?.call();
+      },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Panduan')),
+        appBar: AppBar(title: const Text('Panduan Apple CarPlay')),
         body: SafeArea(
           top: false,
           child: AppContent(
@@ -123,6 +128,12 @@ class _SetupGuidePageState extends State<SetupGuidePage> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    if (widget.onChangeMode != null)
+                      TextButton.icon(
+                        onPressed: _working ? null : widget.onChangeMode,
+                        icon: const Icon(Icons.devices_outlined),
+                        label: const Text('Pilih mode koneksi'),
+                      ),
                     const AppNotice.warning(
                       'Ikuti panduan saat mobil terparkir. Anda bisa membukanya kembali kapan saja.',
                     ),

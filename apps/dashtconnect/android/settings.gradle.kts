@@ -26,3 +26,4 @@ plugins {
 
 include(":app")
 include(":receiver")
+include(":androidauto")
