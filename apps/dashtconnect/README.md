@@ -43,6 +43,16 @@ Build pertama dapat mengunduh Gradle, Android SDK dan NDK yang diperlukan Flutte
 
 ## Percobaan di perangkat dan mobil
 
+### Build APK release (sekali jalan)
+
+Setelah ada perubahan, naikkan `version` di `pubspec.yaml` (angka setelah `+` wajib naik agar bisa di-update di HP), lalu dari root repo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File apps\dashtconnect\build-release.ps1
+```
+
+Hasil: `apps/dashtconnect/build/dashtconnect-<versi>.apk`. Skrip memakai `android/key.properties` dan `dashtconnect.authAssetsDir` di `android/local.properties`; keduanya di luar Git.
+
 ### Build uji receiver lokal
 
 Build release sekarang menolak aset autentikasi yang hilang, kosong atau tercampur file lain. Debug tanpa aset tetap bisa digunakan untuk mengembangkan UI, tetapi tidak dapat memulai sesi CarPlay. Siapkan hanya `offline-mfi/identity.pk8` dan `offline-mfi/certificate.p7b` di direktori lokal di luar Git, lalu tentukan path absolut pada `DASHTCONNECT_AUTH_ASSETS_DIR` di terminal build. Jangan simpan kunci dalam source atau memasukkan keystore ke direktori assets.
