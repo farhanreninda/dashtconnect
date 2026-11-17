@@ -2,7 +2,7 @@ name: dashtconnect
 description: "Pendamping koneksi iPhone, receiver Android, dan T-Link."
 publish_to: 'none'
 
-version: 0.7.6+39
+version: 0.8.1+41
 
 environment:
   sdk: ^3.13.5

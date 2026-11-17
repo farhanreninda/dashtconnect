@@ -177,4 +177,23 @@ void main() {
       await expectLater(gateway.prepareConnection(), throwsFormatException);
     },
   );
+
+  test('head unit status is parsed and rejects unknown states', () async {
+    Object? reply;
+    messenger.setMockMethodCallHandler(channel, (_) async => reply);
+    final gateway = MethodChannelReceiverGateway();
+
+    reply = {'link': 'streaming', 'problem': null};
+    expect((await gateway.headUnitStatus()).link, HeadUnitLink.streaming);
+
+    reply = {'link': 'detected', 'problem': 'Kabel terputus.'};
+    final status = await gateway.connectHeadUnit();
+    expect(status.link, HeadUnitLink.detected);
+    expect(status.problem, 'Kabel terputus.');
+
+    reply = {'link': 'mirroring'};
+    await expectLater(gateway.headUnitStatus(), throwsFormatException);
+    reply = {'link': 'absent', 'problem': 7};
+    await expectLater(gateway.headUnitStatus(), throwsFormatException);
+  });
 }

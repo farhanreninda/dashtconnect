@@ -57,3 +57,14 @@ class ReceiverWifi {
   const ReceiverWifi(this.ssid, this.passphrase);
   final String ssid, passphrase;
 }
+
+/// How far the USB link to the head unit has come, replacing the T-Link phone app.
+enum HeadUnitLink { absent, detected, waiting, streaming }
+
+class HeadUnitStatus {
+  const HeadUnitStatus(this.link, {this.problem});
+  final HeadUnitLink link;
+
+  /// Why the last attempt ended or never started; null when nothing went wrong.
+  final String? problem;
+}

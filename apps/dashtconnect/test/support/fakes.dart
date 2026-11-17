@@ -25,6 +25,17 @@ class TestReceiverGateway implements ReceiverGateway {
   }
 
   bool failStart = false;
+  HeadUnitStatus headUnit = const HeadUnitStatus(HeadUnitLink.absent);
+  HeadUnitStatus Function()? onConnectHeadUnit;
+  int headUnitConnects = 0;
+  @override
+  Future<HeadUnitStatus> headUnitStatus() async => headUnit;
+  @override
+  Future<HeadUnitStatus> connectHeadUnit() async {
+    headUnitConnects++;
+    return headUnit = onConnectHeadUnit?.call() ?? headUnit;
+  }
+
   int prepares = 0;
   String? startedPhoneId;
   Future<ReceiverPreparation> Function()? onPrepare;

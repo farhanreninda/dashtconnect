@@ -36,6 +36,7 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
     private var setupStep = 0
     private val connectionPreferences = activity.getSharedPreferences("receiver_connection", Context.MODE_PRIVATE)
     private var disposed = false
+    val headUnit = HeadUnitLink(activity)
 
     val viewFactory = object : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
         override fun create(context: android.content.Context, viewId: Int, args: Any?): PlatformView {
@@ -79,6 +80,8 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
                         result.success(null)
                     }
                     "shareDiagnostics" -> result.success(shareDiagnostics())
+                    "headUnitStatus" -> result.success(headUnit.status())
+                    "connectHeadUnit" -> headUnit.connect(result)
                     "stop" -> {
                         val viewId = call.argument<Number>("viewId")?.toInt()
                         views[viewId]?.stop()
@@ -222,6 +225,7 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
 
     fun dispose() {
         disposed = true
+        headUnit.dispose()
         views.values.toList().forEach { it.dispose() }
         pendingPermissions?.error("closed", "Aplikasi ditutup.", null)
         pendingPermissions = null

@@ -4,7 +4,7 @@ DashTConnect dikembangkan sebagai aplikasi Android mandiri untuk menerima sesi i
 
 ## Beranda
 
-Tombol Mulai receiver membuka persiapan sambungan dan mencoba iPhone terakhir yang berhasil terhubung, atau satu-satunya ponsel yang sudah dipasangkan. Bila ada beberapa perangkat tanpa riwayat, pengguna memilih iPhone. Aplikasi meminta izin serta menampilkan dialog Bluetooth atau panel Wi-Fi jika perlu; pemasangan pertama tetap disetujui melalui pengaturan Bluetooth. Aplikasi memeriksa izin perangkat sekitar, Bluetooth, daftar iPhone yang sudah dipasangkan, jaringan Android dan kesiapan autentikasi aksesori. Beranda berfokus pada koneksi iPhone; tutorial dan pengecekan T-Link tersedia di tab Panduan.
+Tombol Mulai receiver membuka dua langkah. Langkah pertama menghubungkan head unit lewat kabel USB: DashTConnect mendeteksi head unit T-Link, meminta akses USB dan izin rekam layar, lalu menampilkan layar HP di mobil tanpa aplikasi T-Link. Langkah ini dapat dilewati untuk memakai layar HP saja. Langkah kedua membuka persiapan sambungan iPhone dan mencoba iPhone terakhir yang berhasil terhubung, atau satu-satunya ponsel yang sudah dipasangkan. Bila ada beberapa perangkat tanpa riwayat, pengguna memilih iPhone. Aplikasi meminta izin serta menampilkan dialog Bluetooth atau panel Wi-Fi jika perlu; pemasangan pertama tetap disetujui melalui pengaturan Bluetooth. Aplikasi memeriksa izin perangkat sekitar, Bluetooth, daftar iPhone yang sudah dipasangkan, jaringan Android dan kesiapan autentikasi aksesori. Beranda berfokus pada koneksi iPhone; tutorial dan pengecekan T-Link tersedia di tab Panduan.
 
 ## Receiver iPhone
 

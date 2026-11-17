@@ -12,6 +12,7 @@ import 'appearance_page.dart';
 import 'display_probe_page.dart';
 import 'about_page.dart';
 import 'setup_guide_page.dart';
+import 'head_unit_page.dart';
 import 'receiver_page.dart';
 import '../widgets/app_layout.dart';
 import '../widgets/app_navigation.dart';
@@ -150,17 +151,26 @@ class _ResearchHomeState extends State<ResearchHome> {
 
   Future<void> _openReceiver() => Navigator.of(context).push<void>(
     AppPageRoute(
-      builder: (_) => ReceiverPage(
-        autoConnect: true,
-        receiver: widget.receiver,
-        device: widget.bridge,
-        initiallyDimmed: _dimmed,
-        onDimmedChanged: (value) {
-          if (mounted) setState(() => _dimmed = value);
-        },
-      ),
+      builder: (_) =>
+          HeadUnitPage(receiver: widget.receiver, onContinue: _openCarPlay),
     ),
   );
+
+  /// Step 2: replaces the head unit step so Back returns to Beranda.
+  Future<void> _openCarPlay() =>
+      Navigator.of(context).pushReplacement<void, void>(
+        AppPageRoute(
+          builder: (_) => ReceiverPage(
+            autoConnect: true,
+            receiver: widget.receiver,
+            device: widget.bridge,
+            initiallyDimmed: _dimmed,
+            onDimmedChanged: (value) {
+              if (mounted) setState(() => _dimmed = value);
+            },
+          ),
+        ),
+      );
 
   Future<void> _openDevice() => Navigator.of(context).push<void>(
     AppPageRoute(

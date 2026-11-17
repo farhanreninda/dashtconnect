@@ -33,7 +33,6 @@ class TLinkMirrorService : Service() {
     private var reader: ImageReader? = null
     private var captureThread: HandlerThread? = null
     @Volatile private var latest: RfbFrame? = null
-    @Volatile private var running = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -42,15 +41,18 @@ class TLinkMirrorService : Service() {
         startInForeground()
         val accessory = intent?.parcelable<UsbAccessory>(UsbManager.EXTRA_ACCESSORY)
         val data = intent?.parcelable<Intent>(EXTRA_PROJECTION_DATA)
-        if (running || accessory == null || data == null) {
-            if (!running) stopSelf()
+        if (active || accessory == null || data == null) {
+            if (!active) stopSelf()
             return START_NOT_STICKY
         }
-        running = true
+        active = true
+        streaming = false
+        problem = null
         log.write("tlink accessory ${accessory.manufacturer}/${accessory.model} v${accessory.version}")
         val manager = getSystemService(MediaProjectionManager::class.java)
         val mp = manager.getMediaProjection(intent.getIntExtra(EXTRA_RESULT_CODE, 0), data) ?: run {
             log.write("tlink screen capture refused")
+            problem = "Izin rekam layar belum diberikan. Coba hubungkan lagi."
             stopSelf(); return START_NOT_STICKY
         }
         projection = mp
@@ -93,13 +95,25 @@ class TLinkMirrorService : Service() {
         val fd = getSystemService(UsbManager::class.java)?.openAccessory(accessory)
         if (fd == null) {
             log.write("tlink open accessory failed")
+            problem = "Koneksi USB head unit belum bisa dibuka. Tutup T-Link, cabut lalu colok ulang kabel."
         } else {
             fd.use {
-                TLinkRfbServer(
-                    FileInputStream(it.fileDescriptor), FileOutputStream(it.fileDescriptor),
-                    WIDTH, HEIGHT, { latest }, log::write,
-                ).run()
+                val wire = TLinkWireLog(log::write)
+                val bearer = TLinkAapBearer(wire.input(FileInputStream(it.fileDescriptor)), wire.output(FileOutputStream(it.fileDescriptor)), log::write)
+                try {
+                    bearer.establish()
+                    TLinkRfbServer(
+                        bearer.input, bearer.output,
+                        WIDTH, HEIGHT, { latest }, log::write, onFirstFrame = { streaming = true },
+                    ).run()
+                } catch (e: Exception) {
+                    log.write("tlink aap failed: ${e.javaClass.simpleName} ${e.message}")
+                } finally {
+                    bearer.close()
+                }
             }
+            problem = if (streaming) "Tampilan ke head unit terputus. Colok ulang kabel lalu hubungkan lagi."
+            else "Head unit belum menerima tampilan DashTConnect. Bagikan log diagnostik dari Pengaturan."
         }
         stopSelf()
     }
@@ -122,7 +136,8 @@ class TLinkMirrorService : Service() {
     }
 
     override fun onDestroy() {
-        running = false
+        active = false
+        streaming = false
         display?.release()
         reader?.close()
         projection?.stop()
@@ -138,6 +153,15 @@ class TLinkMirrorService : Service() {
         // shortcut: fixed 800x480 because RFB lets the server pick the size; read the head unit's real panel size from the log and adjust.
         const val WIDTH = 800
         const val HEIGHT = 480
+        /** True while a head unit session is being served. */
+        @Volatile var active = false
+            private set
+        /** True once the head unit has received the first frame of the current session. */
+        @Volatile var streaming = false
+            private set
+        /** Why the last session ended or never started, for the head unit step in the app. */
+        @Volatile var problem: String? = null
+            private set
         private const val CHANNEL = "tlink"
         private const val NOTIFICATION_ID = 7301
         private const val EXTRA_RESULT_CODE = "resultCode"

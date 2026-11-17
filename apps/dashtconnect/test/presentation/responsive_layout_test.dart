@@ -374,6 +374,8 @@ void main() {
 
           await tapVisible(tester, find.text('Beranda'));
           await tapVisible(tester, find.text('Mulai receiver'));
+          expect(find.text('Hubungkan head unit'), findsOneWidget);
+          await tapVisible(tester, find.text('Lewati, pakai layar HP saja'));
           await tapVisible(tester, find.text('Hubungkan iPhone'));
           expect(receiver.starts, 0);
           expect(

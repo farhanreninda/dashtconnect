@@ -133,6 +133,32 @@ class MethodChannelReceiverGateway implements ReceiverGateway {
       _methods.invokeMethod<void>('stop', {'viewId': viewId});
 
   @override
+  Future<HeadUnitStatus> headUnitStatus() async =>
+      _headUnit(await _methods.invokeMethod<Object?>('headUnitStatus'));
+
+  @override
+  Future<HeadUnitStatus> connectHeadUnit() async =>
+      _headUnit(await _methods.invokeMethod<Object?>('connectHeadUnit'));
+
+  HeadUnitStatus _headUnit(Object? value) {
+    if (value case {'link': String link}) {
+      final problem = value['problem'];
+      if (problem != null &&
+          (problem is! String || problem.isEmpty || problem.length > 512)) {
+        throw const FormatException('Status head unit tidak valid.');
+      }
+      return HeadUnitStatus(switch (link) {
+        'absent' => HeadUnitLink.absent,
+        'detected' => HeadUnitLink.detected,
+        'waiting' => HeadUnitLink.waiting,
+        'streaming' => HeadUnitLink.streaming,
+        _ => throw const FormatException('Status head unit tidak dikenal.'),
+      }, problem: problem as String?);
+    }
+    throw const FormatException('Status head unit tidak valid.');
+  }
+
+  @override
   Future<bool> shareDiagnostics() async =>
       await _methods.invokeMethod<bool>('shareDiagnostics') ?? false;
 }
