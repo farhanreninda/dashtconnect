@@ -14,13 +14,46 @@ MemoryNotebookRepository _readyRepository() =>
 ResearchApp _app({
   required MemoryNotebookRepository repository,
   required TestDeviceGateway device,
+  TestReceiverGateway? receiver,
 }) => ResearchApp(
   repository: repository,
   device: device,
-  receiver: TestReceiverGateway(),
+  receiver: receiver ?? TestReceiverGateway(),
 );
 
 void main() {
+  testWidgets('diagnostic log can be shared and explains when empty', (
+    tester,
+  ) async {
+    final receiver = TestReceiverGateway()..hasDiagnostics = false;
+    await tester.pumpWidget(
+      _app(
+        repository: _readyRepository(),
+        device: TestDeviceGateway(),
+        receiver: receiver,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pengaturan'));
+    await tester.pumpAndSettle();
+    final tile = find.text('Bagikan log diagnostik');
+    await tester.ensureVisible(tile);
+    await tester.tap(tile);
+    await tester.pump();
+    expect(receiver.shares, 1);
+    expect(find.textContaining('Belum ada log'), findsOneWidget);
+    ScaffoldMessenger.of(
+      tester.element(find.text('Pengaturan aplikasi')),
+    ).removeCurrentSnackBar();
+    await tester.pump();
+    receiver.hasDiagnostics = true;
+    await tester.tap(tile);
+    await tester.pump();
+    expect(receiver.shares, 2);
+    expect(find.textContaining('Belum ada log'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('back on home asks once, then exits only within two seconds', (
     tester,
   ) async {

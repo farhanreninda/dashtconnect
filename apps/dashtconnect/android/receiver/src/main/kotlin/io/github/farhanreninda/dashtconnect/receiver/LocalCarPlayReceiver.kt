@@ -6,6 +6,11 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.hardware.usb.UsbManager
+import android.os.BatteryManager
+import android.os.PowerManager
 import android.os.Build
 import android.net.wifi.WifiManager
 import android.provider.Settings
@@ -13,6 +18,7 @@ import android.view.Surface
 import com.shilapi.xcertplay.airplay.*
 import com.shilapi.xcertplay.iap2.session.Iap2Session
 import com.shilapi.xcertplay.media.AndroidMediaSink
+import com.shilapi.xcertplay.media.LiveVideoMeter
 import com.shilapi.xcertplay.media.MediaAudioBuffer
 import com.shilapi.xcertplay.mfi.Iap2MfiAuthenticationClient
 import com.shilapi.xcertplay.network.CarPlayBonjour
@@ -66,12 +72,14 @@ class LocalCarPlayReceiver(
     private val tunnelWorker = Executors.newSingleThreadExecutor()
     private val timers = Executors.newSingleThreadScheduledExecutor()
     private val touchWorker = Executors.newSingleThreadExecutor()
+    private val log = ReceiverSessionLog.forContext(app)
     private val touches = ReceiverTouchDispatcher(touchWorker) { points ->
         if (!closed.get()) active.get()?.sendTouch(points.map { AirPlayContact(it.id, it.x, it.y, true) })
     }
 
     fun start() {
         check(started.compareAndSet(false, true))
+        log.write("session start model=${Build.MODEL} sdk=${Build.VERSION.SDK_INT} video=${videoSize.width}x${videoSize.height}")
         worker.execute {
             try { connect() }
             catch (error: Exception) {
@@ -87,7 +95,9 @@ class LocalCarPlayReceiver(
         if (!closed.get() && reported.get()) touches.submit(points)
     }
 
-    private fun status(message: String) { if (!closed.get() && !reported.get()) onStatus(message) }
+    private fun status(message: String) {
+        if (!closed.get() && !reported.get()) { log.write("status $message"); onStatus(message) }
+    }
 
     private fun protocolProgress(message: String) {
         receiverProtocolDiagnostic(message)?.let { android.util.Log.i("DashTReceiver", it) }
@@ -134,6 +144,14 @@ class LocalCarPlayReceiver(
             group(WifiP2pChannels.AUTO_2_4_GHZ).let { it to it.start(25_000) }
         }
         android.util.Log.i("DashTReceiver", "Wi-Fi local stationMHz=$stationMHz frequencyMHz=${network.frequencyMHz}")
+        log.write("wifi stationMHz=$stationMHz groupMHz=${network.frequencyMHz}")
+        // T-Link (USB accessory) captures and JPEG-encodes this screen on the CPU; it cannot show more
+        // than ~30 fps on the head unit, so 60 fps only adds decode and capture load.
+        val headUnitLink = runCatching {
+            app.getSystemService(UsbManager::class.java)?.accessoryList?.isNotEmpty() == true
+        }.getOrDefault(false)
+        val fps = if (headUnitLink) 30 else 60
+        log.write("video fps=$fps headUnitUsb=$headUnitLink")
         val address = network.hostAddresses.filterIsInstance<Inet4Address>().firstOrNull()
             ?: network.hostAddress ?: throw IOException("LOCAL_ADDRESS_UNAVAILABLE")
         val fallbackId = identity.publicKey.take(6).mapIndexed { i, value ->
@@ -153,7 +171,7 @@ class LocalCarPlayReceiver(
         val config = AirPlayConfig(
             deviceName = "DashTConnect", deviceId = receiverHardwareAddress(network.bssid) ?: fallbackId,
             btMac = btMac, sourceVersion = "950.7.1", port = server.localPort,
-            main = AirPlayDisplayConfig(videoSize.width, videoSize.height, fps = 60),
+            main = AirPlayDisplayConfig(videoSize.width, videoSize.height, fps = fps),
             rightHandDrive = true, microphone = true,
             mainBufferedAudio = true,
             manufacturer = "DashTConnect", model = Build.MODEL, oemLabel = "DashTConnect",
@@ -161,12 +179,21 @@ class LocalCarPlayReceiver(
         android.util.Log.i("DashTReceiver", "Audio output offered buffered=true microphone=true hardwareBluetoothAvailable=${btMac != fallbackId}")
         val sink = AndroidMediaSink(
             surface = surface, videoWidth = videoSize.width, videoHeight = videoSize.height,
-            context = app, audioFocusEnabled = true, mainVideoFrameRate = 60,
+            context = app, audioFocusEnabled = true, mainVideoFrameRate = fps,
+            onAudioDiagnostic = log::write,
             // Receive gaps reached 620 ms on this link; keep music buffered across those gaps.
             mediaBufferMillis = MediaAudioBuffer.MOST_STABLE_MILLIS,
             callSpeakerphone = { true },
         )
         resources.add { sink.close() }
+        val meter = LiveVideoMeter()
+        timers.scheduleAtFixedRate({
+            if (reported.get()) {
+                val video = meter.update(sink.liveVideoCounters(), System.nanoTime())
+                log.write("sample ${deviceHealth()} shownFps=${video?.shownFps ?: -1} " +
+                    "receivedFps=${video?.receivedFps ?: -1} decodeMs=${video?.decodeMillis ?: -1}")
+            }
+        }, SAMPLE_SECONDS, SAMPLE_SECONDS, TimeUnit.SECONDS)
         val media = CarPlayMediaEngine(sink, microphoneEnabled = true)
         val identification = Iap2IdentificationConfig(
             name = "DashTConnect", modelIdentifier = Build.MODEL,
@@ -287,6 +314,7 @@ class LocalCarPlayReceiver(
                 last = error
                 runCatching { socket.close() }
                 android.util.Log.w("DashTReceiver", "Bluetooth attempt ${attempt + 1} failed")
+                log.write("bluetooth attempt ${attempt + 1} failed ${error.javaClass.simpleName}")
                 if (attempt < BLUETOOTH_ATTEMPTS - 1) Thread.sleep(1_000)
             } finally { timeout.cancel(false) }
         }
@@ -296,18 +324,20 @@ class LocalCarPlayReceiver(
     private fun confirmConnection(confirmHotspot: () -> Unit) {
         if (!closed.get() && runtimeReady.get() && rendered.get() && reported.compareAndSet(false, true)) {
             runCatching(confirmHotspot)
+            log.write("connected ${deviceHealth()}")
             onConnected()
         }
     }
 
     private fun fail(reason: String) {
         if (!closed.compareAndSet(false, true)) return
+        log.write("failure reason=$reason wasConnected=${reported.get()} ${deviceHealth()}")
         onFailure(reason)
         release()
     }
 
     override fun close() {
-        if (closed.compareAndSet(false, true)) release()
+        if (closed.compareAndSet(false, true)) { log.write("stopped by app"); release() }
     }
 
     private fun release() {
@@ -321,7 +351,17 @@ class LocalCarPlayReceiver(
             .apply { isDaemon = true; start() }
     }
 
+    private fun deviceHealth(): String {
+        val thermal = if (Build.VERSION.SDK_INT >= 29)
+            app.getSystemService(PowerManager::class.java)?.currentThermalStatus ?: -1 else -1
+        val battery = app.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val tenthsC = battery?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) ?: -1
+        val plugged = (battery?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0) != 0
+        return "thermal=$thermal batteryC=${tenthsC / 10.0} charging=$plugged"
+    }
+
     companion object {
+        private const val SAMPLE_SECONDS = 15L
         private const val BLUETOOTH_ATTEMPTS = 3
         private const val IAP2_UUID = "00000000-deca-fade-deca-deafdecacafe"
     }

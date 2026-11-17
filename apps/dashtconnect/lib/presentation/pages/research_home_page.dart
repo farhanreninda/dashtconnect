@@ -77,6 +77,16 @@ class _ResearchHomeState extends State<ResearchHome> {
     });
   }
 
+  Future<void> _shareDiagnostics() async {
+    try {
+      if (!await widget.receiver.shareDiagnostics()) {
+        _message('Belum ada log. Gunakan CarPlay dulu, lalu coba lagi.');
+      }
+    } catch (_) {
+      _message('Log belum dapat dibagikan. Coba lagi.');
+    }
+  }
+
   void _message(String text) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -443,6 +453,18 @@ class _ResearchHomeState extends State<ResearchHome> {
                       subtitle: const Text('Model dan sistem Android'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: _openDevice,
+                    ),
+                    const Divider(height: 16),
+                    ListTile(
+                      minTileHeight: 72,
+                      contentPadding: EdgeInsets.zero,
+                      leading: const IconTile(Icons.receipt_long_outlined),
+                      title: const Text('Bagikan log diagnostik'),
+                      subtitle: const Text(
+                        'Catatan koneksi CarPlay untuk melacak putus dan suara tersendat',
+                      ),
+                      trailing: const Icon(Icons.ios_share_rounded),
+                      onTap: _shareDiagnostics,
                     ),
                     const Divider(height: 16),
                     ListTile(

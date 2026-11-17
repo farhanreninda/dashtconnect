@@ -16,7 +16,14 @@ class TestReceiverGateway implements ReceiverGateway {
     phones: [],
   );
   final updates = StreamController<ReceiverEvent>.broadcast();
-  int starts = 0, stops = 0, requests = 0;
+  int starts = 0, stops = 0, requests = 0, shares = 0;
+  bool hasDiagnostics = true;
+  @override
+  Future<bool> shareDiagnostics() async {
+    shares++;
+    return hasDiagnostics;
+  }
+
   bool failStart = false;
   int prepares = 0;
   String? startedPhoneId;

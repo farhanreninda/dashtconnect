@@ -131,4 +131,8 @@ class MethodChannelReceiverGateway implements ReceiverGateway {
   @override
   Future<void> stop(int viewId) =>
       _methods.invokeMethod<void>('stop', {'viewId': viewId});
+
+  @override
+  Future<bool> shareDiagnostics() async =>
+      await _methods.invokeMethod<bool>('shareDiagnostics') ?? false;
 }

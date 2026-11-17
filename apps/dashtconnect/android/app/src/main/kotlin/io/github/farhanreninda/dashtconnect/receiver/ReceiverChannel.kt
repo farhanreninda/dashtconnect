@@ -78,6 +78,7 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
                         view.start(address)
                         result.success(null)
                     }
+                    "shareDiagnostics" -> result.success(shareDiagnostics())
                     "stop" -> {
                         val viewId = call.argument<Number>("viewId")?.toInt()
                         views[viewId]?.stop()
@@ -89,6 +90,21 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
                 result.error("receiver", error.message ?: "Receiver belum dapat dijalankan.", null)
             }
         }
+    }
+
+    /** False when no CarPlay session has been recorded yet. */
+    private fun shareDiagnostics(): Boolean {
+        val file = ReceiverSessionLog.forContext(activity)
+            .exportTo(java.io.File(activity.cacheDir, "diagnostics-export/dashtconnect-carplay-log.txt")) ?: return false
+        val uri = androidx.core.content.FileProvider.getUriForFile(activity, activity.packageName + ".diagnostics", file)
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_SUBJECT, "Log diagnostik DashTConnect")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        activity.startActivity(Intent.createChooser(send, "Bagikan log diagnostik"))
+        return true
     }
 
     @Suppress("MissingPermission", "DEPRECATION")
@@ -308,6 +324,7 @@ class ReceiverChannel(private val activity: Activity, messenger: BinaryMessenger
                 onFailure = { reason -> if (current == attempt) {
                     if (wasConnected && reason in droppedSession && reconnects < MAX_RECONNECTS) {
                         reconnects++
+                        ReceiverSessionLog.forContext(activity).write("auto reconnect $reconnects/$MAX_RECONNECTS after $reason")
                         emit(id, "connecting", "Koneksi terputus. Menghubungkan ulang iPhone…")
                         main.postDelayed({
                             // The failed receiver already released itself; skip the "stopped" event.
