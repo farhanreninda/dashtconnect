@@ -51,7 +51,7 @@ Setelah ada perubahan, naikkan `version` di `pubspec.yaml` (angka setelah `+` wa
 powershell -ExecutionPolicy Bypass -File apps\dashtconnect\build-release.ps1
 ```
 
-Hasil: `apps/dashtconnect/build/dashtconnect-<versi>.apk`. Skrip memakai `android/key.properties` dan `dashtconnect.authAssetsDir` di `android/local.properties`; keduanya di luar Git.
+Hasil: `apps/dashtconnect/build/dashtconnect-<versi>.apk`. Jika HP tersambung lewat USB dengan USB debugging aktif, skrip langsung memasang dan membuka aplikasinya. Skrip memakai `android/key.properties` dan `dashtconnect.authAssetsDir` di `android/local.properties`; keduanya di luar Git.
 
 ### Build uji receiver lokal
 

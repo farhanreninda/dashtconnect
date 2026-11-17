@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Identity the JVCKenwood head unit announces when it switches the phone into AOA mode. -->
+<resources>
+    <usb-accessory manufacturer="com.jvckenwood" model="tlink" />
+</resources>

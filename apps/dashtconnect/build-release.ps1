@@ -1,4 +1,4 @@
-# Build APK release siap pasang. Jalankan dari folder mana saja:
+# Build APK release lalu pasang ke HP yang tersambung. Jalankan dari folder mana saja:
 #   powershell -ExecutionPolicy Bypass -File apps\dashtconnect\build-release.ps1
 # Butuh android/key.properties dan dashtconnect.authAssetsDir di android/local.properties.
 $ErrorActionPreference = 'Stop'
@@ -17,3 +17,13 @@ $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*(\S+)').Match
 $out = Join-Path $PSScriptRoot "build\dashtconnect-$version.apk"
 Copy-Item build\app\outputs\flutter-apk\app-release.apk $out -Force
 Write-Host "`nAPK siap: $out"
+
+# Pasang ke HP yang tersambung lewat USB (USB debugging aktif), lalu buka aplikasinya.
+$sdkDir = (Select-String -Path android\local.properties -Pattern '^sdk\.dir=(.+)').Matches[0].Groups[1].Value -replace '\\\\', '\' -replace '\\:', ':'
+$adb = Join-Path $sdkDir 'platform-tools\adb.exe'
+$devices = & $adb devices | Select-String '\tdevice$'
+if (-not $devices) { Write-Host 'Tidak ada HP tersambung; APK tidak dipasang.'; exit 0 }
+& $adb install -r $out
+if ($LASTEXITCODE -ne 0) { throw "Install gagal (exit $LASTEXITCODE)." }
+& $adb shell 'monkey -p io.github.farhanreninda.dashtconnect -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1'
+Write-Host 'Aplikasi terpasang dan dibuka di HP.'
